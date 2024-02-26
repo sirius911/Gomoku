@@ -7,6 +7,7 @@ game_over = False
 board = {}
 captures = {"black": 0, "white": 0}
 current_player = ["black"]
+IA = ""
 
 def draw_board(canvas):
     canvas.delete("all")
@@ -211,7 +212,7 @@ def play(grid_x, grid_y):
             show_double_three_dialog()
 
 def canvas_click_handler(event):
-    if game_over or current_player[0] != "black":  # Supposons que le joueur noir est humain et le blanc est l'IA:
+    if game_over or current_player[0] == IA:  # Supposons que le joueur noir est humain et le blanc est l'IA:
         return
     margin = 20
     cell_size = 30
@@ -219,11 +220,11 @@ def canvas_click_handler(event):
     grid_y = round((event.y - margin) / cell_size)
     play(grid_x, grid_y)
     
-    if current_player[0] == "white":  # Tour de l'IA
+    if current_player[0] == IA:  # Tour de l'IA
         ai_x, ai_y = ai_move(board, "white")
         if ai_x is not None and ai_y is not None:
             place_stone(canvas, board, ai_x, ai_y, current_player[0])
-            
+
 def main():
     global window, canvas, player_label, black_captures_label, white_captures_label
     window = tk.Tk()
