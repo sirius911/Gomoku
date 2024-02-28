@@ -1,12 +1,17 @@
+import random
 from constants import *
+import time
+from ia import minmax
+from utils_board import check_double_three, generate_possible_moves, isAlignement
 
 class GomokuLogic:
-    def __init__(self, size=19):
+    def __init__(self, size=19, ia = None):
         self.size = size
         self.board = {}
         self.current_player = "black"
         self.opponent = {"black": "white", "white": "black"}
         self.captures = {"black": 0, "white": 0}
+        self.ia = ia
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
@@ -16,12 +21,34 @@ class GomokuLogic:
             return INVALID_MOVE
         self.board[(x, y)] = self.current_player
         # print(f"self.board[({x}, {y})] = {self.current_player}")
-        if self.check_double_three(x,y):
+        if check_double_three(self.board, x, y, self.current_player):
+            del self.board[x,y]
             return FORBIDDEN_MOVE
         self.check_capture(x, y, self.current_player)
         if self.check_win(x, y):
             return WIN_GAME
         # self.current_player = "white" if self.current_player == "black" else "black"
+        return CONTINUE_GAME
+    
+    def play_IA(self):
+        depth = 3  # Profondeur de recherche, ajustez selon le besoin
+        best_score = float('-inf')
+        best_move = None
+        for move in generate_possible_moves(self.board, self.size, self.current_player):
+            print(f"move = {move}", end=' ', flush=True)
+            # Assumez une structure de données pour 'move' qui est compatible avec votre logique de jeu
+            score = minmax(self.board, depth, float('-inf'), float('inf'), True, self.current_player)
+            print(f"score = {score}", end=' ', flush=True)
+            if score > best_score:
+                best_score = score
+                best_move = move
+                print("+")
+            else:
+                print("")
+        print(f"*** best = {best_move} with score = {score}")
+        x, y = best_move
+        self.board[(x, y)] = self.current_player
+        self.switch_player()
         return CONTINUE_GAME
 
     def check_win(self, x, y):
@@ -30,37 +57,7 @@ class GomokuLogic:
             print(f"{self.current_player} wins")
             return True
         #check alignement of 5 Stones
-        return self.isAlignement(x,y)
-    
-    def is_three(self, x, y, direction, length=6):
-        dx, dy = direction
-        sequence = []
-        #sequence d'un three
-        three_free=[[0,1,1,1,0,0],[0,1,1,1,0,1],[0,1,1,1,0,2],[0,1,0,1,1,0],[0,1,1,0,1,0]]
-        for i in range(-1, length-1):
-            nx, ny = x + dx * i, y + dy * i
-            if 0 <= nx < 19 and 0 <= ny < 19:  # Assure que la position est dans les limites du plateau
-                stone = self.board.get((nx, ny))
-                if stone and stone == self.current_player:
-                    sequence.append(1)  # Pierres de la même couleur
-                elif stone:
-                    sequence.append(2)  # Autre couleur
-                else:
-                    sequence.append(0)  # Aucune pierre ou pierre de couleur différente
-            else:
-                sequence.append(0)  # Hors du plateau pour les positions hors limites
-        return sequence in three_free
-    
-    def check_double_three(self, x, y):
-        directions = [(1, 0), (0, 1), (-1, 0), (0, -1),(1, 1),(-1, -1)]
-        three_count = 0
-        for d in directions:
-            if self.is_three(x, y, d):
-                three_count += 1
-                if three_count > 1:
-                    del self.board[x,y]
-                    return True
-        return False
+        return isAlignement(self.board,x,y, self.current_player)
     
     def capture(self, x, y, direction):
         """
@@ -97,8 +94,6 @@ class GomokuLogic:
                 stone1 = captured[0]
                 stone2 = captured[1]
                 print(f"Capture détectée à ({stone1[0]}, {stone1[1]}) et ({stone2[0]}, {stone2[1]})")
-                # canvas.delete(board[stone1]['id'])
-                # canvas.delete(board[stone2]['id'])
                 del self.board[stone1]
                 del self.board[stone2]
                 self.captures[player] += 2
@@ -106,19 +101,3 @@ class GomokuLogic:
 
         return captures_made
     
-    def isAlignement(self, x, y):
-        directions = [(1, 0), (0, 1), (1, 1), (1, -1)]
-        for dx, dy in directions:
-            count = 1
-            i, j = x + dx, y + dy
-            while 0 <= i < 19 and 0 <= j < 19 and self.board.get((i, j), {}) == self.current_player:
-                count += 1
-                i, j = i + dx, j + dy
-            i, j = x - dx, y - dy
-            while 0 <= i < 19 and 0 <= j < 19 and self.board.get((i, j), {}) == self.current_player:
-                count += 1
-                i, j = i - dx, j - dy
-            if count >= 5:
-                print(f"{self.current_player} wins")
-                return True
-        return False

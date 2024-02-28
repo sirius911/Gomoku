@@ -21,6 +21,9 @@ class GomokuGUI:
         self.captures_labels["black"].pack()
         self.captures_labels["white"].pack()
         self.end_game_dialog = None
+        self.draw_current_player_indicator()
+        self.update_captures_display(self.game_logic.captures)
+
 
     @property
     def pixel_size(self):
@@ -34,11 +37,26 @@ class GomokuGUI:
         else:
             self.draw_stones()
             if status == WIN_GAME:
-                self.end_game_dialog = EndGameDialog(self.master, f"{self.game_logic.current_player} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+                win = self.game_logic.current_player
+                if win == self.game_logic.ia:
+                    win += " (IA)"
+                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
             else:
-                self.draw_stones()
+                # self.draw_stones()
                 self.update_captures_display(self.game_logic.captures)
                 self.game_logic.switch_player()
+                self.draw_current_player_indicator()
+                if self.is_IA_turn():
+                    self.ia_play()
+
+    def ia_play(self):
+        self.game_logic.play_IA()
+        self.draw_stones()
+        self.update_captures_display(self.game_logic.captures)
+        self.draw_current_player_indicator()
+
+    def is_IA_turn(self):
+        return (self.game_logic.ia == self.game_logic.current_player)
 
     def draw_board(self):
         for i in range(self.size):
@@ -51,6 +69,7 @@ class GomokuGUI:
         self.canvas.delete("stone")  # Remove existing stones
         for (x, y), color in self.game_logic.board.items():
             self.draw_stone(x, y, color)
+        self.canvas.update()
 
     def draw_stone(self, x, y, color):
         radius = self.cell_size // 2 - 2
@@ -58,33 +77,67 @@ class GomokuGUI:
         center_y = self.margin + y * self.cell_size
         self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags="stone")
 
+    def draw_current_player_indicator(self):
+        # Assurez-vous d'effacer l'indicateur précédent
+        self.canvas.delete("current_player_indicator")
+
+        # Position pour le texte et le cercle
+        text_x = self.margin // 4
+        text_y = self.margin // 2
+        indicator_x = (self.margin // 2 + self.cell_size // 4) + 100
+        indicator_y = self.margin // 2
+        radius = self.cell_size // 4  # Taille de l'indicateur
+
+        # Déterminez la couleur du joueur actuel
+        color = self.game_logic.current_player
+
+        # Dessinez le texte "Player: "
+        texte = "Player's Turn "
+        if self.is_IA_turn():
+            texte += "(IA)"
+        self.canvas.create_text(text_x, text_y, text=texte, anchor="w", tags="current_player_indicator")
+
+        # Dessinez un cercle pour indiquer le joueur actuel
+        self.canvas.create_oval(indicator_x - radius, indicator_y - radius, indicator_x + radius, indicator_y + radius, fill=color, tags="current_player_indicator")
+        self.canvas.update()
+
     def convert_pixel_to_grid(self, pixel_x, pixel_y):
         grid_x = (pixel_x - self.margin + self.cell_size // 2) // self.cell_size
         grid_y = (pixel_y - self.margin + self.cell_size // 2) // self.cell_size
+        grid_x = grid_x if grid_x <= 18 else 18
+        grid_y = grid_y if grid_y <= 18 else 18
         return grid_x, grid_y
     
+    # def update_captures_display(self, captures):
+    #     self.captures_labels["black"].config(text=f"Captures Black: {captures['black']}")
+    #     self.captures_labels["white"].config(text=f"Captures White: {captures['white']}")
+
     def update_captures_display(self, captures):
-        self.captures_labels["black"].config(text=f"Captures Black: {captures['black']}")
-        self.captures_labels["white"].config(text=f"Captures White: {captures['white']}")
+        # Position pour le texte et le cercle des captures
+        text_x = 100  # Ajustez selon vos besoins
+        black_y = 575
+        white_y = 600
+        radius = 10  # Taille des cercles
 
+        # Dessinez les cercles de capture
+        self.canvas.create_oval(text_x, black_y - radius, text_x + 2*radius, black_y + radius, fill="black", tags="capture_indicator")
+        self.canvas.create_oval(text_x, white_y - radius, text_x + 2*radius, white_y + radius, fill="white", tags="capture_indicator")
 
-    def show_winner(self, winner):
-        messagebox.showinfo("Game Over", f"{winner} wins!")
+        # Mettez à jour le texte des labels pour inclure le nombre de captures
+        self.captures_labels["black"].config(text=f"Captures      {captures['black']}")
+        self.captures_labels["white"].config(text=f"Captures      {captures['white']}")
 
-    def show_invalide(self, text="Invalide Move",type = "warning"):
-        if type == "warning":
-            messagebox.showwarning("Invalide Move", text)
-        elif type == "error":
-            messagebox.showerror("Invalide Move", text)
-        else:
-            messagebox.INFO("Info", text)
+        # Ajustez la position des labels si nécessaire
+        self.captures_labels["black"].place(x=text_x + 3*radius, y=black_y - radius)
+        self.captures_labels["white"].place(x=text_x + 3*radius, y=white_y - radius)
+        self.canvas.update()
 
     def replay_game(self):
         if self.end_game_dialog:
             self.end_game_dialog.destroy()
             self.end_game_dialog = None
         # Réinitialiser la logique de jeu
-        self.game_logic = GomokuLogic()
+        self.game_logic = GomokuLogic(ia=self.game_logic.ia)
 
         # Effacer le plateau de jeu dans l'interface graphique
         self.canvas.delete("all")
@@ -92,8 +145,6 @@ class GomokuGUI:
         # Mettre à jour l'affichage des captures, scores, etc. si nécessaire
         self.update_captures_display({ "black": 0, "white": 0 })
         # self.update_captures_display(self.game_logic.captures)
-
-        
 
          # Redessiner le plateau de jeu
         self.draw_board()
