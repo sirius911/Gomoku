@@ -10,7 +10,7 @@ except ModuleNotFoundError as e:
     print("Please type : pip install -r requirements.txt")
     sys.exit(1)
 
-VERSION = "v1.00"
+VERSION = "v1.01c"
 
 def main(ia):
     root = tk.Tk()
@@ -25,6 +25,7 @@ def main(ia):
     game_logic = GomokuLogic(ia=ia)
     gui = GomokuGUI(root, game_logic)
     gui.draw_board()
+    gui.draw_stones()
     if gui.is_IA_turn():
         gui.ia_play()
     root.mainloop()
@@ -37,4 +38,4 @@ if __name__ == "__main__":
     if args.version:
         print(f"\n----------------------------------\n{Fore.CYAN}Gomoku 42 Project{Style.RESET_ALL}: Version = {Fore.GREEN}{VERSION}{Style.RESET_ALL}\n----------------------------------\n")
         sys.exit(0)
-    main("white")
+    main(args.ia)

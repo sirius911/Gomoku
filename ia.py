@@ -1,6 +1,6 @@
 # ia.py
 
-from utils_board import count_sequences, generate_possible_moves, isAlignement
+from utils_board import count_sequences
 
 
 def evaluate(board, current_player):

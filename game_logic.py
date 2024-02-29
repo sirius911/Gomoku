@@ -2,7 +2,7 @@ import random
 from constants import *
 import time
 from ia import minmax
-from utils_board import check_double_three, generate_possible_moves, isAlignement
+import ctypes
 
 class GomokuLogic:
     def __init__(self, size=19, ia = None):
@@ -12,22 +12,39 @@ class GomokuLogic:
         self.opponent = {"black": "white", "white": "black"}
         self.captures = {"black": 0, "white": 0}
         self.ia = ia
+        self.libgame = ctypes.CDLL('c/libgame.dylib')
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
 
     def play(self, x, y):
+
         if (x, y) in self.board or not (0 <= x < self.size and 0 <= y < self.size):
             return INVALID_MOVE
         self.board[(x, y)] = self.current_player
-        # print(f"self.board[({x}, {y})] = {self.current_player}")
-        if check_double_three(self.board, x, y, self.current_player):
+
+        if self.check_double_three(x, y):
             del self.board[x,y]
             return FORBIDDEN_MOVE
         self.check_capture(x, y, self.current_player)
         if self.check_win(x, y):
             return WIN_GAME
-        # self.current_player = "white" if self.current_player == "black" else "black"
+        
+        # *****   Travail sur implementation C
+ 
+        board = self.board_2_char()
+        board_c = ctypes.c_char_p(board.encode('utf-8'))
+        self.libgame.count_sequences.restype = ctypes.c_int
+        self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
+        player = "B".encode('utf-8')
+        result2 = self.libgame.count_sequences(board_c, player, 2)
+        result3 = self.libgame.count_sequences(board_c, player, 3)
+        result4 = self.libgame.count_sequences(board_c, player, 4)
+        if result2 > 0 or result3 >0 or result4 >0:
+            print(f"[2]: {result2} - [3]: {result3} - [4]: {result4}")
+            print("--------------------")
+        #*********************************************
+
         return CONTINUE_GAME
     
     def play_IA(self):
@@ -57,7 +74,12 @@ class GomokuLogic:
             print(f"{self.current_player} wins")
             return True
         #check alignement of 5 Stones
-        return isAlignement(self.board,x,y, self.current_player)
+        self.libgame.isAlignment.restype = ctypes.c_bool
+        self.libgame.isAlignment.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_char]
+        board = self.board_2_char()
+        board_c = ctypes.c_char_p(board.encode('utf-8'))
+        player = self.current_player.capitalize()[0].encode('utf-8')
+        return self.libgame.isAlignment(board_c, x, y, player)
     
     def capture(self, x, y, direction):
         """
@@ -101,3 +123,24 @@ class GomokuLogic:
 
         return captures_made
     
+    def board_2_char(self, board = None):
+        ret = ""
+        if not board:
+            board = self.board
+        for row in range(self.size):
+            for col in range(self.size):
+                if (col,row) not in board:
+                    ret += "0"
+                else:
+                    stone = board[(col,row)].capitalize()[0]
+                    ret += stone
+        ret += "\0"
+        return ret
+    
+    def check_double_three(self, x, y):
+        self.libgame.check_double_three.restype = ctypes.c_bool
+        self.libgame.check_double_three.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_char]
+        board = self.board_2_char()
+        board_c = ctypes.c_char_p(board.encode('utf-8'))
+        player = self.current_player.capitalize()[0].encode('utf-8')
+        return self.libgame.check_double_three(board_c, x, y, player)
