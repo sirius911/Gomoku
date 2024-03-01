@@ -10,7 +10,7 @@ except ModuleNotFoundError as e:
     print("Please type : pip install -r requirements.txt")
     sys.exit(1)
 
-VERSION = "v1.01c"
+VERSION = "v1.5c"
 
 def main(ia):
     root = tk.Tk()

@@ -3,6 +3,7 @@ from constants import *
 import time
 from ia import minmax
 import ctypes
+import pickle
 
 class GomokuLogic:
     def __init__(self, size=19, ia = None):
@@ -36,34 +37,32 @@ class GomokuLogic:
         board_c = ctypes.c_char_p(board.encode('utf-8'))
         self.libgame.count_sequences.restype = ctypes.c_int
         self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
-        player = "B".encode('utf-8')
+        player = self.current_player.capitalize()[0].encode('utf-8')
         result2 = self.libgame.count_sequences(board_c, player, 2)
         result3 = self.libgame.count_sequences(board_c, player, 3)
         result4 = self.libgame.count_sequences(board_c, player, 4)
-        if result2 > 0 or result3 >0 or result4 >0:
-            print(f"[2]: {result2} - [3]: {result3} - [4]: {result4}")
-            print("--------------------")
+        # if result2 > 0 or result3 >0 or result4 >0:
+        # print(f"pour {player.decode()}[2]: {result2} - [3]: {result3} - [4]: {result4}")
+        # print("--------------------")
+        self.libgame.essais(board_c, player)
         #*********************************************
 
         return CONTINUE_GAME
     
     def play_IA(self):
-        depth = 3  # Profondeur de recherche, ajustez selon le besoin
-        best_score = float('-inf')
-        best_move = None
-        for move in generate_possible_moves(self.board, self.size, self.current_player):
-            print(f"move = {move}", end=' ', flush=True)
-            # Assumez une structure de données pour 'move' qui est compatible avec votre logique de jeu
-            score = minmax(self.board, depth, float('-inf'), float('inf'), True, self.current_player)
-            print(f"score = {score}", end=' ', flush=True)
-            if score > best_score:
-                best_score = score
-                best_move = move
-                print("+")
-            else:
-                print("")
-        print(f"*** best = {best_move} with score = {score}")
-        x, y = best_move
+        class Move(ctypes.Structure):
+            _fields_ = [("col", ctypes.c_int),
+                        ("row", ctypes.c_int)]
+        
+        depth = 2 # Ajustez la profondeur de recherche selon les besoins
+        self.libgame.play_IA.restype = Move
+        self.libgame.play_IA.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
+        board = self.board_2_char()
+        board_c = ctypes.c_char_p(board.encode('utf-8'))
+        player = self.current_player.capitalize()[0].encode('utf-8')
+        best_move = self.libgame.play_IA(board_c, player,depth )
+        x, y = best_move.col,best_move.row
+        # print(f"best move = ({x},{y})")
         self.board[(x, y)] = self.current_player
         self.switch_player()
         return CONTINUE_GAME
@@ -144,3 +143,20 @@ class GomokuLogic:
         board_c = ctypes.c_char_p(board.encode('utf-8'))
         player = self.current_player.capitalize()[0].encode('utf-8')
         return self.libgame.check_double_three(board_c, x, y, player)
+
+    def save(self, path):
+        with open(path, 'wb') as save_file:
+            pickle.dump({
+                'size': self.size,
+                'board': self.board,
+                'current_player': self.current_player,
+                'captures': self.captures,
+            }, save_file)
+
+    def load(self, path):
+        with open(path, 'rb') as load_file:
+            data = pickle.load(load_file)
+            self.size = data['size']
+            self.board = data['board']
+            self.current_player = data['current_player']
+            self.captures = data['captures']

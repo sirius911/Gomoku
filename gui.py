@@ -3,6 +3,7 @@ from tkinter import messagebox
 from constants import *
 from dialogs import EndGameDialog, CustomDialog
 from game_logic import GomokuLogic
+from tkinter import filedialog
 
 class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20):
@@ -23,6 +24,22 @@ class GomokuGUI:
         self.end_game_dialog = None
         self.draw_current_player_indicator()
         self.update_captures_display(self.game_logic.captures)
+
+        # Créer une barre de menu
+        menu_bar = tk.Menu(self.master)
+
+        # Créer un menu "Fichier"
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Sauvegarder", command=self.save_game)
+        file_menu.add_command(label="Charger", command=self.load_game)
+        file_menu.add_separator()
+        file_menu.add_command(label="Quitter", command=self.quit_game)
+
+        # Ajouter le menu "Fichier" à la barre de menu
+        menu_bar.add_cascade(label="Fichier", menu=file_menu)
+
+        # Configurer la fenêtre principale pour utiliser cette barre de menu
+        self.master.config(menu=menu_bar)
 
 
     @property
@@ -151,3 +168,22 @@ class GomokuGUI:
 
     def quit_game(self):
         self.master.destroy()
+
+    def save_game(self):
+        filepath = filedialog.asksaveasfilename(
+            initialdir='parties/',  # Répertoire initial
+            defaultextension=".gom",
+            filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
+        if filepath:
+            # Supposons que votre logique de jeu a une méthode 'save' qui prend un chemin de fichier
+            self.game_logic.save(filepath)
+
+    def load_game(self):
+        filepath = filedialog.askopenfilename(
+            initialdir='parties/',  # Répertoire initial
+            filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
+        if filepath:
+            # Supposons que votre logique de jeu a une méthode 'load' qui prend un chemin de fichier
+            self.game_logic.load(filepath)
+            self.draw_board()  # Redessiner le plateau de jeu après le chargement
+            self.draw_stones()  # Redessiner les pierres après le chargement
