@@ -12,7 +12,10 @@ class GomokuLogic:
         self.current_player = "black"
         self.opponent = {"black": "white", "white": "black"}
         self.captures = {"black": 0, "white": 0}
-        self.ia = ia
+        # self.ia = ia
+        self.ia = {"black":False, "white":False}
+        # self.ia_black = False
+        # self.ia_white = False
         self.libgame = ctypes.CDLL('c/libgame.dylib')
 
     def switch_player(self):
@@ -33,23 +36,30 @@ class GomokuLogic:
         
         # *****   Travail sur implementation C
  
-        board = self.board_2_char()
-        board_c = ctypes.c_char_p(board.encode('utf-8'))
-        self.libgame.count_sequences.restype = ctypes.c_int
-        self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
-        player = self.current_player.capitalize()[0].encode('utf-8')
-        result2 = self.libgame.count_sequences(board_c, player, 2)
-        result3 = self.libgame.count_sequences(board_c, player, 3)
-        result4 = self.libgame.count_sequences(board_c, player, 4)
+        # board = self.board_2_char()
+        # board_c = ctypes.c_char_p(board.encode('utf-8'))
+        # self.libgame.count_sequences.restype = ctypes.c_int
+        # self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
+        # player = self.current_player.capitalize()[0].encode('utf-8')
+        # result2 = self.libgame.count_sequences(board_c, player, 2)
+        # result3 = self.libgame.count_sequences(board_c, player, 3)
+        # result4 = self.libgame.count_sequences(board_c, player, 4)
         # if result2 > 0 or result3 >0 or result4 >0:
         # print(f"pour {player.decode()}[2]: {result2} - [3]: {result3} - [4]: {result4}")
         # print("--------------------")
-        self.libgame.essais(board_c, player)
+        # self.libgame.essais(board_c, player)
         #*********************************************
 
         return CONTINUE_GAME
     
+    def IA_Turn(self):
+        return self.ia[self.current_player]
+    
     def play_IA(self):
+        board = self.board_2_char()
+        board_c = ctypes.c_char_p(board.encode('utf-8'))
+        player = self.current_player.capitalize()[0].encode('utf-8')
+        self.libgame.essais(board_c, player)
         class Move(ctypes.Structure):
             _fields_ = [("col", ctypes.c_int),
                         ("row", ctypes.c_int)]
@@ -151,12 +161,21 @@ class GomokuLogic:
                 'board': self.board,
                 'current_player': self.current_player,
                 'captures': self.captures,
+                'ia_black':self.ia['black'],
+                'ia_white':self.ia['white']
             }, save_file)
 
     def load(self, path):
         with open(path, 'rb') as load_file:
-            data = pickle.load(load_file)
-            self.size = data['size']
-            self.board = data['board']
-            self.current_player = data['current_player']
-            self.captures = data['captures']
+            try:
+                data = pickle.load(load_file)
+                self.size = data['size']
+                self.board = data['board']
+                self.current_player = data['current_player']
+                self.captures = data['captures']
+                self.ia_black = data['ia_black']
+                self.ia_white = data['ia_white']
+                return True
+            except Exception as e:
+                print(f"Erreur (bad file): {e}")
+                return False

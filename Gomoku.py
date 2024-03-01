@@ -5,25 +5,17 @@ try:
     from gui import GomokuGUI
     from game_logic import GomokuLogic
     from colorama import Fore,Style
+    from constants import VERSION
 except ModuleNotFoundError as e:
     print(f"{e}")
     print("Please type : pip install -r requirements.txt")
     sys.exit(1)
 
-VERSION = "v1.5c"
-
 def main(ia):
     root = tk.Tk()
-    title = "Gomoku "
-    if ia == "black":
-        title += "IA vs Humain"
-    elif ia == "white":
-        title += "Humain vs IA"
-    else:
-        title += "Humain vs Humain"
-    root.title(title)
     game_logic = GomokuLogic(ia=ia)
     gui = GomokuGUI(root, game_logic)
+    gui.change_title()
     gui.draw_board()
     gui.draw_stones()
     if gui.is_IA_turn():
