@@ -1,13 +1,13 @@
 # constants.py
 
-VERSION = "v1.7c"
+VERSION = "v2.0c"
 
 INVALID_MOVE = {
     "message": "Mouvement invalide. Veuillez réessayer.",
     "alert_type": "error"
 }
 FORBIDDEN_MOVE = {
-    "message": "Mouvement interdit selon les règles.",
+    "message": "Double Trois interdit selon les règles.",
     "alert_type": "warning"
 }
 CONTINUE_GAME = {

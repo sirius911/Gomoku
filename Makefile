@@ -16,12 +16,14 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 # Règle par défaut
-all: build
+all: build run
 
 # Règle de compilation
 build: $(SRC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRC)
 
+run: build
+	python3 Gomoku.py
 # Règle pour nettoyer les fichiers compilés
 clean:
 	rm -f $(TARGET) $(OBJ)

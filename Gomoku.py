@@ -11,9 +11,9 @@ except ModuleNotFoundError as e:
     print("Please type : pip install -r requirements.txt")
     sys.exit(1)
 
-def main(ia):
+def main():
     root = tk.Tk()
-    game_logic = GomokuLogic(ia=ia)
+    game_logic = GomokuLogic()
     gui = GomokuGUI(root, game_logic)
     gui.change_title()
     gui.draw_board()
@@ -23,11 +23,4 @@ def main(ia):
     root.mainloop()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Gomoku Game")
-    parser.add_argument("-v", "--version", action="store_true", help="Show version of the program.")
-    parser.add_argument("-i","--ia", type=str, default="",choices=["white", "black"], help="color of IA")
-    args = parser.parse_args()
-    if args.version:
-        print(f"\n----------------------------------\n{Fore.CYAN}Gomoku 42 Project{Style.RESET_ALL}: Version = {Fore.GREEN}{VERSION}{Style.RESET_ALL}\n----------------------------------\n")
-        sys.exit(0)
-    main(args.ia)
+    main()

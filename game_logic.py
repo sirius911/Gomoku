@@ -3,22 +3,17 @@ import platform
 import random
 from constants import *
 import time
-from ia import minmax
 import ctypes
 import pickle
 
 class GomokuLogic:
-    def __init__(self, size=19, ia = None):
+    def __init__(self, size=19, ia = {"black":False, "white":False}):
         self.size = size
         self.board = {}
         self.current_player = "black"
         self.opponent = {"black": "white", "white": "black"}
         self.captures = {"black": 0, "white": 0}
-        # self.ia = ia
-        self.ia = {"black":False, "white":False}
-        # self.ia_black = False
-        # self.ia_white = False
-        # self.libgame = ctypes.CDLL('c/libgame.dylib')
+        self.ia = ia
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if platform.system() == "Darwin":
             libname = "libgame.dylib"
@@ -40,7 +35,7 @@ class GomokuLogic:
             del self.board[x,y]
             return FORBIDDEN_MOVE
         self.check_capture(x, y, self.current_player)
-        if self.check_win(x, y):
+        if self.check_win():
             return WIN_GAME
         
         # *****   Travail sur implementation C
@@ -73,7 +68,7 @@ class GomokuLogic:
             _fields_ = [("col", ctypes.c_int),
                         ("row", ctypes.c_int)]
         
-        depth = 2 # Ajustez la profondeur de recherche selon les besoins
+        depth = 1 # Ajustez la profondeur de recherche selon les besoins
         self.libgame.play_IA.restype = Move
         self.libgame.play_IA.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
         board = self.board_2_char()
@@ -81,23 +76,28 @@ class GomokuLogic:
         player = self.current_player.capitalize()[0].encode('utf-8')
         best_move = self.libgame.play_IA(board_c, player,depth )
         x, y = best_move.col,best_move.row
-        # print(f"best move = ({x},{y})")
+        if (x, y) == ( -1, -1):
+            self.switch_player()
+            return WIN_GAME
         self.board[(x, y)] = self.current_player
+        
+        if self.check_win():
+            return WIN_GAME
         self.switch_player()
         return CONTINUE_GAME
-
-    def check_win(self, x, y):
-        # check captures
+    
+    def check_win(self):
+         # check captures
         if self.captures[self.current_player] >= 10:
             print(f"{self.current_player} wins")
             return True
         #check alignement of 5 Stones
-        self.libgame.isAlignment.restype = ctypes.c_bool
-        self.libgame.isAlignment.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_char]
+        self.libgame.count_sequences.restype = ctypes.c_int
+        self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
         board = self.board_2_char()
         board_c = ctypes.c_char_p(board.encode('utf-8'))
-        player = self.current_player.capitalize()[0].encode('utf-8')
-        return self.libgame.isAlignment(board_c, x, y, player)
+        winner = self.current_player.capitalize()[0].encode('utf-8')
+        return self.libgame.count_sequences(board_c, winner, 5)
     
     def capture(self, x, y, direction):
         """
@@ -182,8 +182,7 @@ class GomokuLogic:
                 self.board = data['board']
                 self.current_player = data['current_player']
                 self.captures = data['captures']
-                self.ia_black = data['ia_black']
-                self.ia_white = data['ia_white']
+                self.ia = {"black":data['ia_black'], "white":data['ia_white']}
                 return True
             except Exception as e:
                 print(f"Erreur (bad file): {e}")

@@ -100,8 +100,11 @@ class GomokuGUI:
             self.draw_stones()
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
-            self.master.after(100, self.ia_play)
-        # TODO sortie
+            if status == WIN_GAME:
+                win = self.game_logic.current_player
+                if win == self.game_logic.ia:
+                    win += " (IA)"
+                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
 
     def is_IA_turn(self):
         return (self.game_logic.IA_Turn())
@@ -201,6 +204,7 @@ class GomokuGUI:
 
          # Redessiner le plateau de jeu
         self.draw_board()
+        self.draw_current_player_indicator()
 
     def quit_game(self):
         self.master.destroy()
@@ -220,9 +224,11 @@ class GomokuGUI:
         if filepath:
             if self.game_logic.load(filepath):
                 self.change_title()
+                self.update_ia_menu()
                 self.draw_board()  # Redessiner le plateau de jeu après le chargement
                 self.draw_stones()  # Redessiner les pierres après le chargement
                 self.update_captures_display(self.game_logic.captures)
+                self.draw_current_player_indicator()
                 if self.is_IA_turn():
                     self.ia_play()
             else:
@@ -253,3 +259,7 @@ class GomokuGUI:
         self.change_title()
         if self.is_IA_turn():
             self.ia_play()
+
+    def update_ia_menu(self):
+        self.ia_black_var.set(1 if self.game_logic.ia['black'] else 0)
+        self.ia_white_var.set(1 if self.game_logic.ia['white'] else 0)
