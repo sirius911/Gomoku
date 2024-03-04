@@ -144,7 +144,7 @@ bool check_double_three(char *board, int x, int y, char player) {
         {1, 1}, {-1, -1}
     };
     int three_count = 0;
-    int index = idx(x, y);
+    // int index = idx(x, y);
     board = put(board, player, x, y);
     for (int i = 0; i < 6; i++) {
         if (is_three(board, x, y, directions[i][0], directions[i][1], player)) {
@@ -228,7 +228,7 @@ int count_sequences(const char *board, char player, int base_taille_seq) {
     const int nb_dir = 8;
     const int nb_good = 3;
     const int taille_seq = base_taille_seq + 2; // Ajustement pour inclure les espaces de contrôle
-    int directions[nb_dir][2] = {
+    int directions[8][2] = {
         {1, 0}, {0, 1}, {-1, 0}, {0, -1},
         {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
     };

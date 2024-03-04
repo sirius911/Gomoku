@@ -16,14 +16,14 @@ def center_window(window, parent):
 
 
 class CustomDialog(tk.Toplevel):
+
     def __init__(self, parent, title="Dialog", message="Message", alert_type="info"):
         super().__init__(parent)
         self.title(title)
 
         # Configuration de la fenêtre de dialogue
         self.transient(parent)  # La dialogue est liée à la fenêtre parente
-        self.grab_set()  # La fenêtre de dialogue capte l'attention
-        # self.geometry("+%d+%d" % (parent.winfo_rootx() + 50, parent.winfo_rooty() + 50))  # Exemple de positionnement relatif
+        
         self.configure(background=self.get_background_color(alert_type))
         self.message = tk.Label(self, text=message, background=self.get_background_color(alert_type), foreground=self.get_foreground_color(alert_type))
         self.message.pack(pady=20)
@@ -32,8 +32,12 @@ class CustomDialog(tk.Toplevel):
 
         self.ok_button = tk.Button(self.button_frame, text="OK", command=self.destroy)
         self.ok_button.pack(side=tk.RIGHT)
-        center_window(self, parent)        
+        
+        center_window(self, parent)  # Centrez la fenêtre de dialogue
+        
+        self.grab_set()  # La fenêtre de dialogue capte l'attention après avoir été rendue visible et centrée
         self.wait_window(self)  # Attendre que la fenêtre de dialogue soit fermée
+
 
     def get_background_color(self, alert_type):
         colors = {

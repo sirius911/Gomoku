@@ -1,3 +1,5 @@
+import os
+import platform
 import random
 from constants import *
 import time
@@ -16,7 +18,14 @@ class GomokuLogic:
         self.ia = {"black":False, "white":False}
         # self.ia_black = False
         # self.ia_white = False
-        self.libgame = ctypes.CDLL('c/libgame.dylib')
+        # self.libgame = ctypes.CDLL('c/libgame.dylib')
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if platform.system() == "Darwin":
+            libname = "libgame.dylib"
+        else:
+            libname = "libgame.so"
+        libgame_path = os.path.join(current_dir, libname)
+        self.libgame = ctypes.CDLL(libgame_path)
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
