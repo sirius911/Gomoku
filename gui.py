@@ -29,17 +29,22 @@ class GomokuGUI:
         self.update_captures_display(self.game_logic.captures)
 
         # Créer une barre de menu
-        menu_bar = tk.Menu(self.master)
+        menu_bar = tk.Menu(self.master, tearoff=0)
 
         # Créer un menu "Fichier"
         file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_cascade(label="Nouvelle Partie", command=self.replay_game)
+        file_menu.add_cascade(label="Nouvelle Partie", command=self.new_partie)
         file_menu.add_separator()
         file_menu.add_command(label="Sauvegarder", command=self.save_game)
         file_menu.add_command(label="Charger", command=self.load_game)
         file_menu.add_separator()
         file_menu.add_command(label="Quitter", command=self.quit_game)
 
+        #coups
+        self.coups_menu = tk.Menu(menu_bar, tearoff=0)
+        self.coups_menu.add_command(label="Undo", command=self.undo)
+        self.coups_menu.entryconfig("Undo", state="disabled")
+        
         # Créer un menu "IA"
         self.ia_black_var = tk.IntVar()
         self.ia_white_var = tk.IntVar()
@@ -47,22 +52,33 @@ class GomokuGUI:
         # Ajouter des options à cocher pour "Black" et "White"
         ia_menu.add_checkbutton(label="Black", variable=self.ia_black_var, command=self.toggle_ia_color)
         ia_menu.add_checkbutton(label="White", variable=self.ia_white_var, command=self.toggle_ia_color)
-
-        #version
-        version_menu = tk.Menu(self.master)
-        version_menu.add_command(label="Version", command=self.version)
-
+        ia_menu.add_separator()
+        self.ia_level_var = tk.IntVar()
+        self.ia_level_var.set(1)
+        ia_menu.add_radiobutton(label="Level 1", variable=self.ia_level_var, value=1, command=self.toggle_ia_level)
+        ia_menu.add_radiobutton(label="Level 2", variable=self.ia_level_var, value=2, command=self.toggle_ia_level)
+        ia_menu.add_radiobutton(label="Level 3", variable=self.ia_level_var, value=3, command=self.toggle_ia_level)
+        
+        #info
+        self.debug = tk.BooleanVar()
+        info_menu = tk.Menu(self.master)
+        info_menu.add_command(label="Version", command=self.version)
+        info_menu.add_checkbutton(label="Debug", variable=self.debug, command=self.toggle_debug)
+        
         # Ajouter les menus
         menu_bar.add_cascade(label="Fichier", menu=file_menu)
+        menu_bar.add_cascade(label="Coups", menu=self.coups_menu)
         menu_bar.add_cascade(label="IA", menu=ia_menu)
-        menu_bar.add_cascade(label="info", menu=version_menu)
+        menu_bar.add_cascade(label="info", menu=info_menu)
 
         # Configurer la fenêtre principale pour utiliser cette barre de menu
         self.master.config(menu=menu_bar)
 
+        # pour debug taille fenetre
         #self.master.bind("<Configure>", self.on_window_resize)
 
-
+        self.path = None
+        self.saved = False
 
     @property
     def pixel_size(self):
@@ -79,12 +95,13 @@ class GomokuGUI:
         if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
             CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
         else:
+            self.saved = False
             self.draw_stones()
             if status == WIN_GAME:
                 win = self.game_logic.current_player
                 if win == self.game_logic.ia:
                     win += " (IA)"
-                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné !\nVoulez-vous rejouer ?", self.replay_game, self.quit_game)
             else:
                 # self.draw_stones()
                 self.update_captures_display(self.game_logic.captures)
@@ -96,6 +113,7 @@ class GomokuGUI:
     def ia_play(self):
         status = CONTINUE_GAME
         while  status == CONTINUE_GAME and self.is_IA_turn():
+            self.saved = False
             status = self.game_logic.play_IA()
             self.draw_stones()
             self.update_captures_display(self.game_logic.captures)
@@ -122,6 +140,8 @@ class GomokuGUI:
         self.canvas.delete("stone")  # Remove existing stones
         for (x, y), color in self.game_logic.board.items():
             self.draw_stone(x, y, color)
+        self.update_title()
+        self.update_undo_menu()
         self.canvas.update()
 
     def draw_stone(self, x, y, color):
@@ -187,14 +207,9 @@ class GomokuGUI:
         self.captures_labels["white"].place(x=text_x + 3*radius, y=white_y - radius)
         self.canvas.update()
 
-
-    def replay_game(self):
-        if self.end_game_dialog:
-            self.end_game_dialog.destroy()
-            self.end_game_dialog = None
-        # Réinitialiser la logique de jeu
-        self.game_logic = GomokuLogic(ia=self.game_logic.ia)
-
+    def new_partie(self):
+        self.game_logic = GomokuLogic(ia=self.game_logic.ia, debug=self.game_logic.debug, ia_level=self.game_logic.ia_level)
+        self.path = None
         # Effacer le plateau de jeu dans l'interface graphique
         self.canvas.delete("all")
 
@@ -205,30 +220,60 @@ class GomokuGUI:
          # Redessiner le plateau de jeu
         self.draw_board()
         self.draw_current_player_indicator()
+        self.update_title()
+
+    def replay_game(self):
+        if self.end_game_dialog:
+            self.end_game_dialog.destroy()
+            self.end_game_dialog = None
+        # Réinitialiser la logique de jeu
+        self.game_logic = GomokuLogic(ia=self.game_logic.ia, debug=self.game_logic.debug, ia_level=self.game_logic.ia_level)
+        # Effacer le plateau de jeu dans l'interface graphique
+        self.canvas.delete("all")
+        if self.path is not None:
+            self.load_game(self.path)
+        else:
+            # Mettre à jour l'affichage des captures, scores, etc. si nécessaire
+            self.update_captures_display({ "black": 0, "white": 0 })
+            # self.update_captures_display(self.game_logic.captures)
+
+            # Redessiner le plateau de jeu
+            self.draw_board()
+            self.draw_current_player_indicator()
 
     def quit_game(self):
         self.master.destroy()
 
     def save_game(self):
-        filepath = filedialog.asksaveasfilename(
-            initialdir='parties/',  # Répertoire initial
-            defaultextension=".gom",
-            filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
+        filepath = self.path
+        if filepath is None:
+            filepath = filedialog.asksaveasfilename(
+                initialdir='parties/',  # Répertoire initial
+                defaultextension=".gom",
+                filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
+        
         if filepath:
             self.game_logic.save(filepath)
+            self.saved = True
+            self.update_title()
 
-    def load_game(self):
-        filepath = filedialog.askopenfilename(
-            initialdir='parties/',  # Répertoire initial
-            filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
+    def load_game(self, filepath = None):
+        if filepath is None:
+            filepath = filedialog.askopenfilename(
+                initialdir='parties/',  # Répertoire initial
+                filetypes=[("Gomoku files", "*.gom"), ("All files", "*.*")])
         if filepath:
             if self.game_logic.load(filepath):
-                self.change_title()
-                self.update_ia_menu()
+                self.saved = True
+                self.path = filepath
+                self.ia_level_var.set(self.game_logic.ia_level)
+                self.update_title()
+                self.update_menu()
                 self.draw_board()  # Redessiner le plateau de jeu après le chargement
                 self.draw_stones()  # Redessiner les pierres après le chargement
                 self.update_captures_display(self.game_logic.captures)
                 self.draw_current_player_indicator()
+
                 if self.is_IA_turn():
                     self.ia_play()
             else:
@@ -239,27 +284,54 @@ class GomokuGUI:
         message = f"{title}\n@ clorin@student.42.fr"
         CustomDialog(parent=self.master, title=title,message=message, alert_type='info')
 
-    def change_title(self):
+    def update_title(self):
         title = "Gomoku "
         if self.game_logic.ia['black']:
-            title += "IA"
+            title += f"IA({self.ia_level_var.get()})"
         else:
             title += "Humain"
         title += " vs "
         if self.game_logic.ia['white']:
-            title += "IA"
+            title += f"IA({self.ia_level_var.get()})"
         else:
             title += "Humain"
+
+        if self.game_logic.debug:
+            title += " (Debug)"
+        if not self.saved:
+            title += "*"
         self.master.title(title)
 
     def toggle_ia_color(self):       
         # Mettre à jour la couleur de l'IA dans la logique du jeu
         self.game_logic.ia['black'] = (self.ia_black_var.get() == 1)
         self.game_logic.ia['white'] = (self.ia_white_var.get() == 1)
-        self.change_title()
+        self.update_title()
         if self.is_IA_turn():
             self.ia_play()
 
-    def update_ia_menu(self):
+    def toggle_debug(self):
+        self.game_logic.debug = (self.debug.get() == 1)
+        self.update_title()
+
+    def update_menu(self):
         self.ia_black_var.set(1 if self.game_logic.ia['black'] else 0)
         self.ia_white_var.set(1 if self.game_logic.ia['white'] else 0)
+        self.debug.set(1 if self.game_logic.debug else 0)
+
+    def toggle_ia_level(self):
+        self.game_logic.ia_level = self.ia_level_var.get()
+        self.update_title()
+
+    def undo(self):
+        self.game_logic.undo_move()
+        self.update_undo_menu()
+        self.draw_stones()
+        self.update_captures_display(self.game_logic.captures)
+        self.draw_current_player_indicator()
+
+    def update_undo_menu(self):
+        if len(self.game_logic.history) > 0:
+            self.coups_menu.entryconfig("Undo", state="normal")
+        else:
+            self.coups_menu.entryconfig("Undo", state="disabled")

@@ -4,12 +4,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <stdarg.h>
 
 #define SIZE 19
 #define MAX_MOVES (SIZE * SIZE)
 // Utiliser INT_MIN et INT_MAX pour représenter -inf et +inf
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
+
+bool DEBUG = false;
 
 typedef struct {
     int col;
@@ -23,11 +26,18 @@ typedef struct {
     Move coup;
 } EvalResult;
 
-// compilation : gcc -dynamiclib -o libgame.dylib essais.c
-
-void print_board(char* board) {
-    printf("Board: %s\n", board);
+void print(const char *format, ...){
+    if(DEBUG) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
 }
+
+// void print_board(char* board) {
+//     printf("Board: %s\n", board);
+// }
 
 // Fonction pour vérifier si une position (x, y) est valide sur le plateau.
 bool is_valid_position(int x, int y) {
@@ -60,13 +70,13 @@ char *put(char *board, char c, int x, int y) {
     return board;
 }
 
-void print_sequence(const int *seq, int lenght) {
-    printf("sequence = {");
-    for (int a = 0; a < lenght; a++){
-        printf("%d, ", seq[a]);
-    }
-    printf("}\n");
-}
+// void print_sequence(const int *seq, int lenght) {
+//     printf("sequence = {");
+//     for (int a = 0; a < lenght; a++){
+//         printf("%d, ", seq[a]);
+//     }
+//     printf("}\n");
+// }
 
 int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb) {
     /*
@@ -328,7 +338,7 @@ bool game_over(const char *board, char *winner) {
             char current_player = board[idx(x, y)];
             if (current_player != '0' && isAlignment(board, x, y, current_player)) {
                 *winner = current_player;
-                printf("Un alignement gagnant a été trouvé pour %c\n", *winner);
+                print("Un alignement gagnant a été trouvé pour %c\n", *winner);
                 return true; // Un alignement gagnant a été trouvé
             }
         }
@@ -339,7 +349,7 @@ bool game_over(const char *board, char *winner) {
         if (board[i] == '0')
             return false;
     }
-    printf("Match null\n");
+    print("Match null\n");
     return true;
 }
 
@@ -374,7 +384,7 @@ int _evaluate_opponent(const char *board, char opponent) {
         return MAX_EVAL;
     // Ajoutez des points pour chaque séquence favorable à player
     score += count_sequences(board, opponent, 2) * 20;
-    score += count_sequences(board, opponent, 3) * 60;
+    score += count_sequences(board, opponent, 3) * 100;
     score += count_sequences(board, opponent, 4) * 100000;
     return score;
 }
@@ -389,7 +399,8 @@ EvalResult evaluate(const char *board, char player) {
     result.scoreDiff = scorePlayer - scoreOpponent;
     result.playerScore = scorePlayer;
     result.opponentScore = scoreOpponent;
-    printf("\tScore pour %c: %d, Adversaire %c, Score: %d\n\n",player , result.playerScore, opponent, result.opponentScore);
+    print("\tScore pour %c: %d, Adversaire %c, Score: %d -> diff= %d\n\n",
+    player , result.playerScore, opponent, result.opponentScore, result.scoreDiff);
     return result;
 }
 
@@ -405,18 +416,22 @@ void print_sequences_board(char *board, const char *entete) {
     w3 = count_sequences(board, 'W', 3);
     w4 = count_sequences(board, 'W', 4);
     w5 = (count_sequences(board, 'W', 5) > 0);
-    printf("%sBlack [2]:%d - [3]:%d = [4]:%d",entete,b2,b3,b4);
-    printf(" %s", b5 ? "Winner\n":"\n");
-    printf("%sWhite [2]:%d - [3]:%d = [4]:%d\n",entete,w2,w3,w4);
-    printf(" %s", w5 ? "Winner\n":"\n");
+    print("%sBlack [2]:%d - [3]:%d = [4]:%d",entete,b2,b3,b4);
+    print(" %s", b5 ? "Winner\n":"\n");
+    print("%sWhite [2]:%d - [3]:%d = [4]:%d\n",entete,w2,w3,w4);
+    print(" %s", w5 ? "Winner\n":"\n");
 }
 
 
 EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPlayer, char current_player, int currentMoveX, int currentMoveY) {
     char winner = '0';
     if (game_over(board, &winner) || depth == 0) {
+        if (depth % 2)
+            print("\t\t");
+        else
+            print("\t");
         char opponent = (current_player == 'W') ? 'B' : 'W';
-        printf("\tSi %c joue (%d,%d)\n", opponent, currentMoveX, currentMoveY);
+        print("Si %c joue (%d,%d)\n", opponent, currentMoveX, currentMoveY);
         print_sequences_board(board, "\t");
         EvalResult result;
        if (winner == current_player) {
@@ -445,37 +460,34 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
         int maxEval = MIN_EVAL;
         int move_count;
         bestResult.playerScore = MIN_EVAL; // Le pire score pour le joueur
-        bestResult.opponentScore = MIN_EVAL; // Optionnellement, le pire score pour l'adversaire,
         
         int topLeftX, topLeftY, bottomRightX, bottomRightY;
         findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
-            // printf("%c(%d,%d)\n",current_player,moves[i].col, moves[i].row);
+            print("\t%c(%d,%d)\n",current_player,moves[i].col, moves[i].row);
             char *child_board = apply_move(board, moves[i].col, moves[i].row, current_player);
-            // EvalResult result;
-            // printf("\tTest %c(%d,%d) dans Max \n", current_player, moves[i].col, moves[i].row);
-            // print_sequences_board(child_board,"\t\t");
-            // printf("\t-----------------\n");
+
             EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, opponent, moves[i].col, moves[i].row);
             
             if(result.scoreDiff > maxEval) {
                 maxEval = result.scoreDiff;
-                bestResult.coup = moves[i];
+                result.coup = moves[i];
                 bestResult = result;
+                print("\t\tBest\n");
             }
             // maxEval = (eval > maxEval) ? eval : maxEval;
             
             alpha = (result.scoreDiff > alpha) ? result.scoreDiff : alpha;
             if (beta <= alpha) {
                 free(child_board);
-                printf("- break -");
+                print("- break \n");
                 break;
             }
             free(child_board);
         }
         free(moves);
-        printf("\tBest Max %c(%d,%d), Opponent: %c, Eval Score: %d, Player Score: %d, Opponent Score: %d\n",
+        print("\tBest Max %c(%d,%d), Opponent: %c, Eval Score: %d, Player Score: %d, Opponent Score: %d\n",
         current_player, bestResult.coup.col, bestResult.coup.row, opponent, bestResult.scoreDiff, bestResult.playerScore, bestResult.opponentScore);
         return bestResult; // ou convertissez en valeur appropriée si nécessaire
 
@@ -483,18 +495,15 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
         int minEval = MAX_EVAL;
         int move_count;
         bestResult.playerScore = MAX_EVAL; // Le meilleur score pour le joueur, à minimiser
-        bestResult.opponentScore = MAX_EVAL; // Optionnellement, le meilleur score pour l'adversaire
+        bestResult.opponentScore = INT_MIN; // Optionnellement, le meilleur score pour l'adversaire
         
         int topLeftX, topLeftY, bottomRightX, bottomRightY;
         findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = generate_possible_moves(board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
-            // printf("%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
+            print("%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
             char *child_board = apply_move(board, moves[i].col, moves[i].row, opponent);
-            // EvalResult result;
-            // printf("\tTest %c(%d,%d) dans Min \n", opponent,moves[i].col, moves[i].row);
-            // print_sequences_board(child_board,"\t\t");
-            // printf("\t-----------------\n");
+
             EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, current_player, moves[i].col, moves[i].row);
             if (result.scoreDiff < minEval) {
                 minEval = result.scoreDiff;
@@ -506,13 +515,13 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
             
             if (beta <= alpha) {
                 free(child_board);
-                printf("- break -");
+                print("- break -\n");
                 break;
             }
             free(child_board);
         }
         free(moves);
-        printf("\tBest Min %c(%d,%d), Opponent: %c, Eval Score: %d, Player Score: %d, Opponent Score: %d\n",
+        print("\tBest Min %c(%d,%d), Opponent: %c, Eval Score: %d, Player Score: %d, Opponent Score: %d\n",
         opponent, bestResult.coup.col, bestResult.coup.row, current_player, bestResult.scoreDiff, bestResult.playerScore, bestResult.opponentScore);
         return bestResult; // ou convertissez en valeur appropriée si nécessaire
 
@@ -520,53 +529,57 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
     // return bestResult;
 }
 
-Move play_IA(char *board, char current_player, int depth) {
+Move play_IA(char *board, char current_player, int depth, bool debug) {
+    DEBUG = debug;
     int best_score = MIN_EVAL; // Utilisez MIN_EVAL qui est INT_MIN
     Move best_move = {-1, -1}; // Initialisez best_move à une valeur non valide
     int move_count;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
-
+    // char opponent = (current_player == 'W') ? 'B' : 'W';
     for (int i = 0; i < move_count; i++) {
         char *child_board = apply_move(board, moves[i].col, moves[i].row, current_player);
         EvalResult result;
-        printf("\n ***** Coup IA : (%d, %d) *****\n", moves[i].col, moves[i].row);
+        print("\n ***** Coup IA : (%d, %d) *****\n", moves[i].col, moves[i].row);
         print_sequences_board(child_board,"");
-        printf("---------------\n");
+        print("---------------\n");
         result = minmax(child_board, depth, MIN_EVAL, MAX_EVAL, false, current_player, moves[i].col, moves[i].row);
-        printf("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d", moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore);
+        print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d",
+        moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore);
         if (result.scoreDiff > best_score) {
             best_score = result.scoreDiff;
             best_move = moves[i];
-            printf(" +");
+            print(" +");
         }
-        printf("\n");
+        print("\n");
         free(child_board); // libérer la mémoire allouée
     }
 
     if (best_move.col != -1 && best_move.row != -1) {
-        printf("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
+        print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
     } else {
-        printf("Aucun mouvement possible trouvé\n");
+        print("Aucun mouvement possible trouvé\n");
     }
 
     free(moves); // Libérez la liste des mouvements possibles après utilisation
     return best_move;
 }
 
-void essais(char *board, char current_player) {
+void essais(char *board, char current_player, bool debug) {
+    DEBUG = debug;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
+
     findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     if (topLeftX < SIZE && topLeftY < SIZE) { // Vérifie que nous avons trouvé un élément non vide
         int move_count;
         Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
         
-        printf("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
+        print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
         for (int i = 0; i < move_count; i++) {
-             printf("(%d, %d) ", moves[i].col, moves[i].row);
+             print("(%d, %d) ", moves[i].col, moves[i].row);
         }
-        printf("\n");
+        print("\n");
        
         // int b2,b3,b4;
         // int w2,w3,w4;
@@ -579,6 +592,6 @@ void essais(char *board, char current_player) {
         // printf("Black [2]:%d - [3]:%d = [4]:%d\n",b2,b3,b4);
         // printf("White [2]:%d - [3]:%d = [4]:%d\n",w2,w3,w4);
     } else {
-        printf("Aucun élément non vide trouvé sur le plateau.\n");
+        print("Aucun élément non vide trouvé sur le plateau.\n");
     }
 }

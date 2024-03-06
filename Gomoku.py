@@ -4,23 +4,35 @@ try:
     import tkinter as tk
     from gui import GomokuGUI
     from game_logic import GomokuLogic
-    from colorama import Fore,Style
+    # from colorama import Fore,Style
     from constants import VERSION
 except ModuleNotFoundError as e:
     print(f"{e}")
     print("Please type : pip install -r requirements.txt")
     sys.exit(1)
 
-def main():
+def is_gom_file(fileName):
+    if not fileName.endswith(".gom"):
+        raise argparse.ArgumentTypeError("Le fichier doit avoir l'extension '.gom'")
+    return fileName
+
+def main(debug, load):
     root = tk.Tk()
-    game_logic = GomokuLogic()
+    game_logic = GomokuLogic(debug=debug)
     gui = GomokuGUI(root, game_logic)
-    gui.change_title()
-    gui.draw_board()
-    gui.draw_stones()
-    if gui.is_IA_turn():
-        gui.ia_play()
+    if load is not None:
+       gui.load_game(load)
+    else:
+        gui.update_title()
+        gui.draw_board()
+        gui.draw_stones()
+
     root.mainloop()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=f"Gomoku : Gomoku 42 Game. ({VERSION})")
+    parser.add_argument("-d", "--debug", action="store_true", help="Debug option.")
+    parser.add_argument("load", nargs='?', type=is_gom_file, help="load file *.go", default=None)
+    
+    args = parser.parse_args()
+    main(args.debug, args.load)
