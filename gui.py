@@ -33,7 +33,7 @@ class GomokuGUI:
 
         # Créer un menu "Fichier"
         file_menu = tk.Menu(menu_bar, tearoff=0)
-        file_menu.add_cascade(label="Nouvelle Partie", command=self.new_partie)
+        file_menu.add_command(label="Nouvelle Partie", command=self.new_partie)
         file_menu.add_separator()
         file_menu.add_command(label="Sauvegarder", command=self.save_game)
         file_menu.add_command(label="Charger", command=self.load_game)

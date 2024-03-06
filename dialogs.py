@@ -73,7 +73,7 @@ class EndGameDialog(tk.Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.destroy)  # Gérer la fermeture de la fenêtre
         self.transient(parent)  # Assurer que la boîte de dialogue est modale
-        self.grab_set()  # Capturer tous les événements vers cette fenêtre
+        # self.grab_set()  # Capturer tous les événements vers cette fenêtre
         center_window(self, parent) 
         self.wait_window(self)  # Attendre que la fenêtre soit fermée avant de continuer
 

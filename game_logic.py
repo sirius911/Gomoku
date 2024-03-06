@@ -59,7 +59,7 @@ class GomokuLogic:
             _fields_ = [("col", ctypes.c_int),
                         ("row", ctypes.c_int)]
         
-        depth = self.ia_level # Ajustez la profondeur de recherche selon les besoins
+        depth = self.ia_level # Ajuste la profondeur de recherche selon ia_level
         self.libgame.play_IA.restype = Move
         self.libgame.play_IA.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int, ctypes.c_bool]
         board = self.board_2_char()
