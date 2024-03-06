@@ -431,7 +431,7 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
         else
             print("\t");
         char opponent = (current_player == 'W') ? 'B' : 'W';
-        print("Si %c joue (%d,%d)\n", opponent, currentMoveX, currentMoveY);
+        print("Si %c joue (%d,%d)\n", current_player, currentMoveX, currentMoveY);
         print_sequences_board(board, "\t");
         EvalResult result;
        if (winner == current_player) {
@@ -465,7 +465,7 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
         findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
-            print("\t%c(%d,%d)\n",current_player,moves[i].col, moves[i].row);
+            print("\t%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
             char *child_board = apply_move(board, moves[i].col, moves[i].row, current_player);
 
             EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, opponent, moves[i].col, moves[i].row);
@@ -501,7 +501,7 @@ EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPl
         findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = generate_possible_moves(board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
-            print("%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
+            print("%c(%d,%d)\n",current_player,moves[i].col, moves[i].row);
             char *child_board = apply_move(board, moves[i].col, moves[i].row, opponent);
 
             EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, current_player, moves[i].col, moves[i].row);
@@ -537,14 +537,14 @@ Move play_IA(char *board, char current_player, int depth, bool debug) {
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
-    // char opponent = (current_player == 'W') ? 'B' : 'W';
+    char opponent = (current_player == 'W') ? 'B' : 'W';
     for (int i = 0; i < move_count; i++) {
         char *child_board = apply_move(board, moves[i].col, moves[i].row, current_player);
         EvalResult result;
         print("\n ***** Coup IA : (%d, %d) *****\n", moves[i].col, moves[i].row);
         print_sequences_board(child_board,"");
         print("---------------\n");
-        result = minmax(child_board, depth, MIN_EVAL, MAX_EVAL, false, current_player, moves[i].col, moves[i].row);
+        result = minmax(child_board, depth, MIN_EVAL, MAX_EVAL, false, opponent, moves[i].col, moves[i].row);
         print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d",
         moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore);
         if (result.scoreDiff > best_score) {
