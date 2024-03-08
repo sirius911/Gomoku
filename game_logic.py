@@ -6,6 +6,10 @@ import time
 import ctypes
 import pickle
 
+class Move(ctypes.Structure):
+            _fields_ = [("col", ctypes.c_int),
+                        ("row", ctypes.c_int)]
+
 class GomokuLogic:
     def __init__(self, size=19, ia = {"black":False, "white":False}, debug=False, ia_level=1):
         self.size = size
@@ -16,9 +20,9 @@ class GomokuLogic:
         self.ia = ia
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if platform.system() == "Darwin":
-            libname = "libgame.dylib"
+            libname = "lib/libgame.dylib"
         else:
-            libname = "libgame.so"
+            libname = "lib/libgame.so"
         libgame_path = os.path.join(current_dir, libname)
         self.libgame = ctypes.CDLL(libgame_path)
         self.debug = debug
@@ -34,12 +38,12 @@ class GomokuLogic:
             return INVALID_MOVE
 
         self.board[(x, y)] = self.current_player
-
+        
         if self.check_double_three(x, y):
             del self.board[x,y]
             return FORBIDDEN_MOVE
-        captured1, captured2 = self.check_capture(x, y, self.current_player)
         
+        captured1, captured2 = self.check_capture(x, y, self.current_player)
         self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         
         if self.check_win():
@@ -52,20 +56,15 @@ class GomokuLogic:
     
     def play_IA(self):
         board = self.board_2_char()
-        board_c = ctypes.c_char_p(board.encode('utf-8'))
         player = self.current_player.capitalize()[0].encode('utf-8')
-        self.libgame.essais(board_c, player,self.debug)
-        class Move(ctypes.Structure):
-            _fields_ = [("col", ctypes.c_int),
-                        ("row", ctypes.c_int)]
-        
+        self.libgame.analyse(board, player,self.debug)
         depth = self.ia_level # Ajuste la profondeur de recherche selon ia_level
         self.libgame.play_IA.restype = Move
         self.libgame.play_IA.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int, ctypes.c_bool]
-        board = self.board_2_char()
-        board_c = ctypes.c_char_p(board.encode('utf-8'))
-        player = self.current_player.capitalize()[0].encode('utf-8')
-        best_move = self.libgame.play_IA(board_c, player,depth, self.debug)
+        start_time = time.time()
+        best_move = self.libgame.play_IA(board, player,depth, self.debug)
+        end_time = time.time()
+        print(f"Temps d'exécution de play_IA: {end_time - start_time:.2f} secondes.")
         x, y = best_move.col,best_move.row
         if (x, y) == ( -1, -1):
             self.switch_player()
@@ -88,51 +87,31 @@ class GomokuLogic:
         self.libgame.count_sequences.restype = ctypes.c_int
         self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
         board = self.board_2_char()
-        board_c = ctypes.c_char_p(board.encode('utf-8'))
         winner = self.current_player.capitalize()[0].encode('utf-8')
-        return self.libgame.count_sequences(board_c, winner, 5)
-    
-    def capture(self, x, y, direction):
-        """
-            return les stones capturés dans la direction demandé ou None
-        """
-        ret = []
-        dx1 = direction[0]
-        dx2 = direction[0] * 2
-        dx3 = direction[0] * 3
-        dy1 = direction[1]
-        dy2 = direction[1] * 2
-        dy3 = direction[1] * 3
-        if (x, y) in self.board:
-            if ((x + dx1, y + dy1)) in self.board:
-                if ((x + dx2, y + dy2)) in self.board:
-                    if ((x + dx3, y + dy3)) in self.board:
-                        ret = [self.board[x,y], \
-                               self.board[x+dx1,y+dy1],\
-                               self.board[x+dx2,y+dy2], \
-                               self.board[x+dx3,y+dy3]]
-        if (len(ret) == 4):
-            if (ret[0] == ret[3] and ret[1] == ret[2] and ret[0] != ret[1]):
-                to_del1 = (x+dx1, y+dy1)
-                to_del2 = (x+dx2, y+dy2)
-                return (to_del1, to_del2) 
-        return None
+        return self.libgame.count_sequences(board, winner, 5)
 
     def check_capture(self, x, y, player):
-        directions = [(1, 0),(-1, 0),(0, 1), (0, -1),(1, 1),(-1, -1),(-1, 1),(1, -1)]
-        stone1, stone2 = None, None
-        for dx, dy in directions:
-            captured = self.capture(x, y, (dx,dy))
-            if captured:
-                stone1 = captured[0]
-                stone2 = captured[1]
-                if self.debug:
-                    print(f"Capture détectée à ({stone1[0]}, {stone1[1]}) et ({stone2[0]}, {stone2[1]})")
-                del self.board[stone1]
-                del self.board[stone2]
-                self.captures[player] += 2
+        board = self.board_2_char()
+        # Configurez les types de retour et les types d'argument pour check_capture et free_captured_moves
+        self.libgame.check_capture.restype = ctypes.POINTER(Move)
+        self.libgame.check_capture.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
+        self.libgame.free_moves.argtypes = [ctypes.POINTER(Move)]
 
-        return (stone1, stone2)
+        # Appel à check_capture
+        captured_moves = self.libgame.check_capture(board, x, y)
+
+        move1,move2 = None, None
+        if captured_moves:
+            move1 = Move(captured_moves[0].col, captured_moves[0].row)
+            move2 = Move(captured_moves[1].col, captured_moves[1].row)
+
+            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
+            
+            del self.board[(move1.col,move1.row)]
+            del self.board[(move2.col,move2.row)]
+            self.captures[player] += 2
+
+        return (move1, move2)
     
     def board_2_char(self, board = None):
         ret = ""
@@ -146,15 +125,14 @@ class GomokuLogic:
                     stone = board[(col,row)].capitalize()[0]
                     ret += stone
         ret += "\0"
-        return ret
+        return ctypes.c_char_p(ret.encode('utf-8'))
     
     def check_double_three(self, x, y):
         self.libgame.check_double_three.restype = ctypes.c_bool
         self.libgame.check_double_three.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_char]
         board = self.board_2_char()
-        board_c = ctypes.c_char_p(board.encode('utf-8'))
         player = self.current_player.capitalize()[0].encode('utf-8')
-        return self.libgame.check_double_three(board_c, x, y, player)
+        return self.libgame.check_double_three(board, x, y, player)
 
     def save(self, path):
         with open(path, 'wb') as save_file:
@@ -203,8 +181,8 @@ class GomokuLogic:
             # si captured on restore
             self.opponent[self.current_player]
             if (captured1, captured2) != (None, None):
-                self.board[captured1]=self.opponent[self.current_player]
-                self.board[captured2]=self.opponent[self.current_player]
+                self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
+                self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
             return True
         else:
             return False
