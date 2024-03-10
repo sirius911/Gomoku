@@ -25,6 +25,7 @@ def main(debug, load):
        gui.load_game(load)
     else:
         gui.update_title()
+        gui.update_menu()
         gui.draw_board()
         gui.draw_stones()
 

@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 # import random
 from constants import *
 import time
@@ -9,6 +10,11 @@ import pickle
 class Move(ctypes.Structure):
             _fields_ = [("col", ctypes.c_int),
                         ("row", ctypes.c_int)]
+            
+class GameState(ctypes.Structure):
+            _fields_ = [("board", ctypes.POINTER(ctypes.c_char)), # Un pointeur vers un tableau de char
+                        ("captures", ctypes.c_int * 2),    # Un tableau de 2 entiers pour les captures
+                        ("currentPlayer", ctypes.c_char)]  # Le joueur actuel
 
 class GomokuLogic:
     def __init__(self, size=19, ia = {"black":False, "white":False}, debug=False, ia_level=1):
@@ -24,7 +30,14 @@ class GomokuLogic:
         else:
             libname = "lib/libgame.so"
         libgame_path = os.path.join(current_dir, libname)
-        self.libgame = ctypes.CDLL(libgame_path)
+        try:
+            self.libgame = ctypes.CDLL(libgame_path)
+        except OSError:
+            print(f"La librairie {libname} n'est pas disponible !")
+            sys.exit(0)
+        except Exception as e:
+            print(e)
+            sys.exit(0)
         self.debug = debug
         self.ia_level = ia_level
         self.history = []
@@ -42,7 +55,6 @@ class GomokuLogic:
         if self.check_double_three(x, y):
             del self.board[x,y]
             return FORBIDDEN_MOVE
-        
         captured1, captured2 = self.check_capture(x, y, self.current_player)
         self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         
@@ -55,28 +67,30 @@ class GomokuLogic:
         return self.ia[self.current_player]
     
     def play_IA(self):
-        board = self.board_2_char()
-        player = self.current_player.capitalize()[0].encode('utf-8')
-        self.libgame.analyse(board, player,self.debug)
-        depth = self.ia_level # Ajuste la profondeur de recherche selon ia_level
+        gameState = self.getGameState()
+        self.libgame.analyse(gameState, self.debug)
         self.libgame.play_IA.restype = Move
-        self.libgame.play_IA.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int, ctypes.c_bool]
         start_time = time.time()
-        best_move = self.libgame.play_IA(board, player,depth, self.debug)
+        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
         end_time = time.time()
-        print(f"Temps d'exécution de play_IA: {end_time - start_time:.2f} secondes.")
+        play_time = end_time - start_time
         x, y = best_move.col,best_move.row
         if (x, y) == ( -1, -1):
+            print("x et y invalides")
             self.switch_player()
-            return WIN_GAME
+            return WIN_GAME, play_time
         
         self.board[(x, y)] = self.current_player
         captured1, captured2 = self.check_capture(x, y, self.current_player)
         self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         if self.check_win():
-            return WIN_GAME
+            return WIN_GAME, play_time
         self.switch_player()
-        return CONTINUE_GAME
+        return CONTINUE_GAME, play_time
+    
+    def help_IA(self):
+        # TODO
+        return None
     
     def check_win(self):
          # check captures
@@ -113,6 +127,14 @@ class GomokuLogic:
 
         return (move1, move2)
     
+    def getGameState(self):
+        game_state = GameState()
+        board_bytes = self.board_2_char()
+        game_state.board = ctypes.cast(board_bytes, ctypes.POINTER(ctypes.c_char))  # Conversion en POINTER(c_char)
+        game_state.captures = (ctypes.c_int * 2)(self.captures['black'], self.captures['white'])  # Initialiser les captures
+        game_state.currentPlayer = ctypes.c_char(self.current_player.capitalize()[0].encode('utf-8'))
+        return ctypes.byref(game_state)
+
     def board_2_char(self, board = None):
         ret = ""
         if not board:

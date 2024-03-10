@@ -41,7 +41,12 @@ clean:
 	rm -f $(TARGET) $(OBJ)
 
 run_valgrind:
-	valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes python3 Gomoku.py 2>leaks.txt
-	cat leaks.txt | grep "libgame.so"
+	@echo "Lancement de valgrind... 🍺";
+	@valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
+	@if grep -q "libgame.so" leaks.txt; then \
+		grep "libgame.so" leaks.txt; \
+	else \
+		echo "No leaks of libgame.so "; \
+	fi
 
 .PHONY: all build clean

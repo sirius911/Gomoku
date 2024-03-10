@@ -10,6 +10,7 @@ class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20, top_margin = 50):
         self.master = master
         self.master.geometry("584x670")
+        self.master.resizable(False, False)
         self.game_logic = game_logic
         self.size = size
         self.cell_size = cell_size
@@ -35,15 +36,15 @@ class GomokuGUI:
         file_menu = tk.Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="Nouvelle Partie", command=self.new_partie)
         file_menu.add_separator()
-        file_menu.add_command(label="Sauvegarder", command=self.save_game)
+        file_menu.add_command(label="Sauvegarder (Ctrl+S)", command=self.save_game)
         file_menu.add_command(label="Charger", command=self.load_game)
         file_menu.add_separator()
-        file_menu.add_command(label="Quitter", command=self.quit_game)
+        file_menu.add_command(label="Quitter (Ctrl+C)", command=self.quit_game)
 
         #coups
         self.coups_menu = tk.Menu(menu_bar, tearoff=0)
-        self.coups_menu.add_command(label="Undo", command=self.undo)
-        self.coups_menu.entryconfig("Undo", state="disabled")
+        self.coups_menu.add_command(label="Undo (Ctrl+Z)", command=self.undo)
+        self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
         
         # Créer un menu "IA"
         self.ia_black_var = tk.IntVar()
@@ -61,7 +62,7 @@ class GomokuGUI:
         
         #info
         self.debug = tk.BooleanVar()
-        info_menu = tk.Menu(self.master)
+        info_menu = tk.Menu(self.master, tearoff=0)
         info_menu.add_command(label="Version", command=self.version)
         info_menu.add_checkbutton(label="Debug", variable=self.debug, command=self.toggle_debug)
         
@@ -79,6 +80,15 @@ class GomokuGUI:
 
         self.path = None
         self.saved = False
+
+        # Bind keyboard shortcuts
+        self.master.bind('<Control-z>', lambda event: self.undo())
+        self.master.bind('<Control-c>', lambda event: self.quit_game())
+        self.master.bind('<Control-s>', lambda event: self.save_game())
+        self.master.bind('<Control-h>', lambda event: self.help())
+        # Créer et positionner le label du chronomètre
+        self.timer_label = tk.Label(master, text="0.00s")
+        self.timer_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
 
     @property
     def pixel_size(self):
@@ -114,10 +124,11 @@ class GomokuGUI:
         status = CONTINUE_GAME
         while  status == CONTINUE_GAME and self.is_IA_turn():
             self.saved = False
-            status = self.game_logic.play_IA()
+            status,play_time = self.game_logic.play_IA()
             self.draw_stones()
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
+            self.timer_label.config(text=f"{play_time:.2f}s")
             if status == WIN_GAME:
                 win = self.game_logic.current_player
                 if win == self.game_logic.ia:
@@ -144,12 +155,20 @@ class GomokuGUI:
         self.update_undo_menu()
         self.canvas.update()
 
-    def draw_stone(self, x, y, color):
+    def draw_stone(self, x, y, color, tag="stone"):
         radius = self.cell_size // 2 - 2
         center_x = self.margin + x * self.cell_size
         # Utiliser self.top_margin pour ajuster la position verticale des pierres
         center_y = self.top_margin + y * self.cell_size
-        self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags="stone")
+        self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags=tag)
+
+    def blink_stone(self, x, y, color):
+        self.draw_stone(x,y,color,"blink")
+        self.canvas.after(500, lambda: [
+            self.canvas.delete("blink")
+        ])
+        self.canvas.delete("stone")
+        self.draw_stones()
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent
@@ -332,6 +351,6 @@ class GomokuGUI:
 
     def update_undo_menu(self):
         if len(self.game_logic.history) > 0:
-            self.coups_menu.entryconfig("Undo", state="normal")
+            self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="normal")
         else:
-            self.coups_menu.entryconfig("Undo", state="disabled")
+            self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
