@@ -85,7 +85,7 @@ class GomokuGUI:
         self.master.bind('<Control-z>', lambda event: self.undo())
         self.master.bind('<Control-c>', lambda event: self.quit_game())
         self.master.bind('<Control-s>', lambda event: self.save_game())
-        self.master.bind('<Control-h>', lambda event: self.help())
+        self.master.bind('<h>', lambda event: self.help())
         # Créer et positionner le label du chronomètre
         self.timer_label = tk.Label(master, text="0.00s")
         self.timer_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
@@ -169,6 +169,10 @@ class GomokuGUI:
         ])
         self.canvas.delete("stone")
         self.draw_stones()
+
+    def help(self):
+        x,y = self.game_logic.help_IA()
+        self.blink_stone(x,y, self.game_logic.current_player)
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent
@@ -286,18 +290,19 @@ class GomokuGUI:
                 self.saved = True
                 self.path = filepath
                 self.ia_level_var.set(self.game_logic.ia_level)
-                self.update_title()
-                self.update_menu()
-                self.draw_board()  # Redessiner le plateau de jeu après le chargement
-                self.draw_stones()  # Redessiner les pierres après le chargement
-                self.update_captures_display(self.game_logic.captures)
-                self.draw_current_player_indicator()
-
-                if self.is_IA_turn():
-                    self.ia_play()
+                
             else:
                 CustomDialog(parent=self.master, title='Bad File',message='bad file', alert_type='error')
+            self.update_title()
+            self.update_menu()
+            self.draw_board()  # Redessiner le plateau de jeu après le chargement
+            self.draw_stones()  # Redessiner les pierres après le chargement
+            self.update_captures_display(self.game_logic.captures)
+            self.draw_current_player_indicator()
 
+            if self.is_IA_turn():
+                self.ia_play()
+                
     def version(self):
         title = f"Gomoku {VERSION}"
         message = f"{title}\n@ clorin@student.42.fr"

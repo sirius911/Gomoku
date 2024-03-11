@@ -1,6 +1,6 @@
 # constants.py
 
-VERSION = "v2.6c"
+VERSION = "v2.7c"
 
 INVALID_MOVE = {
     "message": "Mouvement invalide. Veuillez réessayer.",

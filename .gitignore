@@ -163,3 +163,4 @@ c/libgame.dylib
 tmp
 libgame.dylib
 c/essais.o
+c/essais copy.c

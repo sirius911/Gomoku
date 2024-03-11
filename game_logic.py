@@ -89,20 +89,17 @@ class GomokuLogic:
         return CONTINUE_GAME, play_time
     
     def help_IA(self):
-        # TODO
-        return None
+        gameState = self.getGameState()
+        self.libgame.play_IA.restype = Move
+        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        return best_move.col,best_move.row
     
     def check_win(self):
-         # check captures
-        if self.captures[self.current_player] >= 10:
-            print(f"{self.current_player} wins")
-            return True
-        #check alignement of 5 Stones
-        self.libgame.count_sequences.restype = ctypes.c_int
-        self.libgame.count_sequences.argtypes = [ctypes.c_char_p, ctypes.c_char, ctypes.c_int]
-        board = self.board_2_char()
-        winner = self.current_player.capitalize()[0].encode('utf-8')
-        return self.libgame.count_sequences(board, winner, 5)
+        self.libgame.game_over.argtypes = [ctypes.POINTER(GameState), ctypes.POINTER(ctypes.c_char)]
+        self.libgame.game_over.restype = ctypes.c_bool
+        gameState = self.getGameState()
+        winner_p = ctypes.c_char()
+        return self.libgame.game_over(gameState, ctypes.byref(winner_p))
 
     def check_capture(self, x, y, player):
         board = self.board_2_char()
