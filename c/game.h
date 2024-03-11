@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:48:32 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/11 21:30:01 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ bool check_double_three(char *board, int x, int y, char player);
 bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
 
-// Prototypes des fonctions ai_logic
+// Prototypes des fonctions minmax
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
 Move play_IA(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
