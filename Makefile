@@ -5,13 +5,19 @@ UNAME_S := $(shell uname -s)
 PATH_LIB := lib/
 PATH_SRCS := c/
 
+SRC := utils.c game_logic.c minmax.c
+SRCS := $(addprefix $(PATH_SRCS),$(SRC))
+OBJ := $(SRCS:.c=.o)
+
 # Paramètres par défaut pour Linux
 CC := gcc
-CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer
+CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer -fPIC
+# Définition des flags d'optimisation
+OPTI_FLAGS := -O3 -march=native -flto -funroll-loops
 LDFLAGS := -shared -fPIC
 TARGET := $(PATH_LIB)libgame.so
-SRC := $(PATH_SRCS)essais.c
-OBJ := $(SRC:.c=.o)
+
+
 
 # Ajuster les paramètres pour macOS
 ifeq ($(UNAME_S),Darwin)
@@ -22,23 +28,33 @@ endif
 # Règle par défaut
 all: $(TARGET)
 
-%.o: %.c
-	$(CC) $(CFLAGS) -fPIC -c $< -o $@
+# Compilation des fichiers objet
+$(PATH_SRCS)%.o: $(PATH_SRCS)%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
+
+# Construction de la bibliothèque à partir des fichiers objet
 $(TARGET): $(OBJ)
 	mkdir -p $(PATH_LIB)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^
+# $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 
 # Règle de compilation
-build: $(SRC)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRC)
+build: $(SRCS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRCS)
+
+opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
+opti: $(TARGET)
 
 run: $(TARGET)
 	-./Gomoku.py
 # Règle pour nettoyer les fichiers compilés
 clean:
 	rm -f $(TARGET) $(OBJ)
+
+re: clean
+	make all
 
 run_valgrind:
 	@echo "Lancement de valgrind... 🍺";
@@ -49,4 +65,4 @@ run_valgrind:
 		echo "No leaks of libgame.so "; \
 	fi
 
-.PHONY: all build clean
+.PHONY: all build clean re
