@@ -17,3 +17,4 @@ WIN_GAME = {
     "alert_type": "info"
 }
 
+PATH_LIB = "lib"

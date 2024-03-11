@@ -48,7 +48,7 @@ opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
 opti: $(TARGET)
 
 run: $(TARGET)
-	-./Gomoku.py
+	-srcs/Gomoku.py
 # Règle pour nettoyer les fichiers compilés
 clean:
 	rm -f $(TARGET) $(OBJ)

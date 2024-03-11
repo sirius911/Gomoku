@@ -24,14 +24,14 @@ class GomokuLogic:
         self.opponent = {"black": "white", "white": "black"}
         self.captures = {"black": 0, "white": 0}
         self.ia = ia
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # current_dir = os.path.dirname(os.path.abspath(__file__))
         if platform.system() == "Darwin":
-            libname = "lib/libgame.dylib"
+            libname = f"{PATH_LIB}/libgame.dylib"
         else:
-            libname = "lib/libgame.so"
-        libgame_path = os.path.join(current_dir, libname)
+            libname = f"{PATH_LIB}/libgame.so"
+        # libgame_path = os.path.join(current_dir, libname)
         try:
-            self.libgame = ctypes.CDLL(libgame_path)
+            self.libgame = ctypes.CDLL(libname)
         except OSError:
             print(f"La librairie {libname} n'est pas disponible !")
             sys.exit(0)
