@@ -103,7 +103,8 @@ class GomokuGUI:
         x, y = self.convert_pixel_to_grid(event.x, event.y)
         status = self.game_logic.play(x, y)
         if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
-            CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
+            if status == FORBIDDEN_MOVE:
+                CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
         else:
             self.saved = False
             self.draw_stones()
@@ -302,7 +303,7 @@ class GomokuGUI:
 
             if self.is_IA_turn():
                 self.ia_play()
-                
+
     def version(self):
         title = f"Gomoku {VERSION}"
         message = f"{title}\n@ clorin@student.42.fr"

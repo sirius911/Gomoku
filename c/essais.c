@@ -53,6 +53,9 @@ int idx(int x, int y) {
     return y * SIZE + x;
 }
 
+char adversaire(const char player){
+    return (player == 'W') ? 'B' : 'W';
+}
 
 char get(const char *board, int x, int y) {
     /*
@@ -270,8 +273,9 @@ void findBoxElements(const char *board, int *topLeftX, int *topLeftY, int *botto
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
-    /*
-        x
+    /*  XXX
+        XBX
+        XXX
     */
     int count = 0;
     char *copie_board = malloc(SIZE * SIZE + 1); // Alloue de la mémoire pour une copie
@@ -450,28 +454,6 @@ bool isAlignment(const char *board, int x, int y, char current_player) {
     return false;
 }
 
-// Fonction pour vérifier si le jeu est terminé.
-// bool game_over(const char *board, char *winner) {
-//     for (int x = 0; x < SIZE; ++x) {
-//         for (int y = 0; y < SIZE; ++y) {
-//             char current_player = board[idx(x, y)];
-//             if (current_player != '0' && isAlignment(board, x, y, current_player)) {
-//                 *winner = current_player;
-//                 print("Un alignement gagnant a été trouvé pour %c\n", *winner);
-//                 return true; // Un alignement gagnant a été trouvé
-//             }
-//         }
-//     }
-
-//     // Vérifiez si le plateau est entièrement rempli pour le match nul
-//     for (int i = 0; i < SIZE * SIZE; ++i) {
-//         if (board[i] == '0')
-//             return false;
-//     }
-//     print("Match null\n");
-//     return true;
-// }
-
 bool game_over(const GameState *gameState, char *winner) {
     // captures
     if (gameState->captures[0] >= 10){
@@ -514,24 +496,6 @@ char *del_captured(char *board, Move *captured) {
     board[index2] = '0';
     return board;
 }
-
-// Crée une copie profonde du plateau et applique un mouvement sur cette copie
-// et eventuellemnt les captures
-// char* apply_move(const char *original_board, int x, int y, char player) {
-//     char *new_board = malloc(SIZE * SIZE + 1); // Alloue de la mémoire pour la nouvelle copie
-//     if (new_board == NULL) {
-//         fprintf(stderr, "Allocation de mémoire échouée\n");
-//         exit(EXIT_FAILURE);
-//     }
-//     strcpy(new_board, original_board); // Copie l'original dans la nouvelle copie
-
-//     int index = idx(x, y);
-//     new_board[index] = player;
-//     Move *captured = check_capture(new_board, x, y);
-//     if (captured)
-//         new_board = del_captured(new_board, captured);
-//     return new_board; // Retourne la nouvelle copie avec le mouvement appliqué
-// }
 
 GameState *apply_move(const GameState *original_gameState, int x, int y) {
     int capture0 = original_gameState->captures[0];
@@ -613,113 +577,6 @@ void print_sequences_board(char *board, const char *entete) {
     print(" %s", w5 ? "Winner\n":"\n");
 }
 
-
-// EvalResult minmax(char *board, int depth, int alpha, int beta, bool maximizingPlayer, char current_player, int currentMoveX, int currentMoveY) {
-//     char winner = '0';
-//     char *child_board = apply_move(board, currentMoveX, currentMoveY, current_player);
-//     if (game_over(child_board, &winner) || depth == 0) {
-
-//         char opponent = (current_player == 'W') ? 'B' : 'W';
-
-//         EvalResult result;
-//         if (winner != '0'){
-//             if (maximizingPlayer){
-//                 result.scoreDiff = INT_MAX - depth; // Favoriser les victoires plus rapides
-//                 result.playerScore = INT_MAX - depth;
-//                 result.opponentScore = INT_MIN + depth;
-//             } else {
-//                 result.scoreDiff = INT_MIN + depth; // La pénalité est moindre pour les défaites tardives
-//                 result.playerScore = INT_MIN + depth;
-//                 result.opponentScore = INT_MAX - depth;
-//             }
-//         } else {
-//             // Pas de vainqueur ou profondeur atteinte, évaluer la position
-//             if (maximizingPlayer) {
-//                 result.playerScore = _evaluate_player(child_board, current_player);
-//                 result.opponentScore = _evaluate_opponent(child_board, opponent);
-//             } else {
-//                 result.playerScore = _evaluate_player(child_board, opponent);
-//                 result.opponentScore = _evaluate_opponent(child_board, current_player);
-//             }
-//             result.scoreDiff = result.playerScore - result.opponentScore;
-//         }
-//         print("\tScore : %c= %d,  %c= %d -> diff= %d",
-//             current_player , result.playerScore, opponent, result.opponentScore, result.scoreDiff);
-
-//         free(child_board);
-//         return result;
-//     }
-
-//     char opponent = (current_player == 'W') ? 'B' : 'W';
-//     EvalResult bestResult;
-
-//     if (maximizingPlayer) {
-//         int maxEval = MIN_EVAL;
-//         int move_count;
-//         bestResult.playerScore = MIN_EVAL; // Le pire score pour le joueur
-
-//         int topLeftX, topLeftY, bottomRightX, bottomRightY;
-//         findBoxElements(child_board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-//         Move *moves = generate_possible_moves(child_board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
-//         for (int i = 0; i < move_count; i++) {
-//             print("\t+ Si %c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
-
-//             EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, opponent, moves[i].col, moves[i].row);
-
-//             if(result.scoreDiff > maxEval) {
-//                 maxEval = result.scoreDiff;
-//                 result.coup = moves[i];
-//                 bestResult = result;
-//                 print(" best move!\n");
-//             }
-//             else
-//                 print("\n");
-            
-//             alpha = (result.scoreDiff > alpha) ? result.scoreDiff : alpha;
-//             if (beta <= alpha) {
-//                 print("- break \n");
-//                 break;
-//             }
-//         }
-//         free(moves);
-//         print("\t\tMeilleur coup pour %c(%d,%d), score=%d  %c=%d, %c=%d\n",
-//         current_player, bestResult.coup.col, bestResult.coup.row, bestResult.scoreDiff, current_player, bestResult.playerScore, opponent, bestResult.opponentScore);
-//     } else {
-//         int minEval = MAX_EVAL;
-//         int move_count;
-//         bestResult.playerScore = MAX_EVAL; // Le meilleur score pour le joueur, à minimiser
-//         bestResult.opponentScore = INT_MIN; // Optionnellement, le meilleur score pour l'adversaire
-        
-        
-//         int topLeftX, topLeftY, bottomRightX, bottomRightY;
-//         findBoxElements(child_board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-//         Move *moves = generate_possible_moves(child_board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
-//         for (int i = 0; i < move_count; i++) {
-//             print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
-//            EvalResult result = minmax(child_board, depth - 1, alpha, beta, !maximizingPlayer, opponent, moves[i].col, moves[i].row);
- 
-//             if (result.scoreDiff < minEval) {
-//                 minEval = result.scoreDiff;
-//                 result.coup = moves[i];
-//                 bestResult = result;
-//                 print(" *worst move !\n");
-//             }
-//             else
-//                 print("\n");
-//            beta = (result.scoreDiff < beta) ? result.scoreDiff : beta;
-            
-//             if (beta <= alpha) {
-//                 print("- break -\n");
-//                 break;
-//             }
-//         }
-//         free(moves);
-//         print("\tMeilleur coup pour adversaire: %c(%d,%d), Score: %d\n",
-//         opponent, bestResult.coup.col, bestResult.coup.row, bestResult.scoreDiff);
-//     }
-//     return bestResult;
-// }
-
 void    free_gameState(GameState *game) {
     if (game) {
         if (game->board)
@@ -768,7 +625,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         return result;
     }
 
-    char opponent = (gameState->currentPlayer == 'W') ? 'B' : 'W';
+    char opponent = adversaire(gameState->currentPlayer);
     EvalResult bestResult;
 
     if (maximizingPlayer) {
@@ -801,7 +658,10 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         }
         free(moves);
         print("\t\tMeilleur coup pour %c(%d,%d), score=%d  %c=%d, %c=%d\n",
-        child_gameState->currentPlayer, bestResult.coup.col, bestResult.coup.row, bestResult.scoreDiff, child_gameState->currentPlayer, bestResult.playerScore, opponent, bestResult.opponentScore);
+        child_gameState->currentPlayer, bestResult.coup.col, bestResult.coup.row,
+        bestResult.scoreDiff,
+        child_gameState->currentPlayer, bestResult.playerScore,
+        adversaire(child_gameState->currentPlayer), bestResult.opponentScore);
     } else {
         int minEval = MAX_EVAL;
         int move_count;
@@ -832,44 +692,14 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
         }
         free(moves);
-        print("\tMeilleur coup pour adversaire: %c(%d,%d), Score: %d\n",
-        opponent, bestResult.coup.col, bestResult.coup.row, bestResult.scoreDiff);
+        print("\tMeilleur coup pour %c(%d,%d), Score: %d, %c=%d, %c=%d\n",
+        opponent, bestResult.coup.col, bestResult.coup.row, 
+        bestResult.scoreDiff,
+        opponent, bestResult.playerScore,
+        adversaire(opponent), bestResult.opponentScore);
     }
     return bestResult;
 }
-
-// Move play_IA(char *board, char current_player, int depth, bool debug) {
-//     DEBUG = debug;
-//     int best_score = MIN_EVAL; // Utilisez MIN_EVAL qui est INT_MIN
-//     Move best_move = {-1, -1}; // Initialisez best_move à une valeur non valide
-//     int move_count;
-//     int topLeftX, topLeftY, bottomRightX, bottomRightY;
-//     findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-//     Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
-
-//     for (int i = 0; i < move_count; i++) {
-//         EvalResult result;
-//         print("\n ***** Coup IA : %c(%d, %d) *****\n", current_player, moves[i].col, moves[i].row);
-//         result = minmax(board, depth, MIN_EVAL, MAX_EVAL, true, current_player, moves[i].col, moves[i].row);
-//         print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d",
-//             moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore);
-//         print("\n---------------\n");
-//         if (result.scoreDiff > best_score) {
-//             best_score = result.scoreDiff;
-//             best_move = moves[i];
-//         }
-//         print("\n");
-//     }
-
-//     if (best_move.col != -1 && best_move.row != -1) {
-//         print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
-//     } else {
-//         print("Aucun mouvement possible trouvé\n");
-//     }
-
-//     free(moves); // Libérez la liste des mouvements possibles après utilisation
-//     return best_move;
-// }
 
 Move play_IA(GameState *gameState, int depth, bool debug) {
     DEBUG = debug;
@@ -907,26 +737,6 @@ Move play_IA(GameState *gameState, int depth, bool debug) {
     free(moves); // Libérez la liste des mouvements possibles après utilisation
     return best_move;
 }
-
-// void analyse(char *board, char current_player, bool debug) {
-//     DEBUG = debug;
-//     int topLeftX, topLeftY, bottomRightX, bottomRightY;
-
-//     findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-//     if (topLeftX < SIZE && topLeftY < SIZE) { // Vérifie que nous avons trouvé un élément non vide
-//         int move_count;
-//         Move *moves = generate_possible_moves(board, &move_count, current_player, topLeftX,topLeftY,bottomRightX,bottomRightY);
-        
-//         print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
-//         for (int i = 0; i < move_count; i++) {
-//              print("(%d, %d) ", moves[i].col, moves[i].row);
-//         }
-//         print("\n");
-//         free(moves);
-//     } else {
-//         print("Aucun élément non vide trouvé sur le plateau.\n");
-//     }
-// }
 
 void analyse(GameState *gameState, bool debug) {
     DEBUG = debug;
