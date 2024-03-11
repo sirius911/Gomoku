@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ai_logic.c                                         :+:      :+:    :+:   */
+/*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:44:11 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/11 21:59:31 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,40 +201,64 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
     return bestResult;
 }
 
+#include <pthread.h>
+
+typedef struct {
+    GameState *gameState;
+    Move move;
+    int depth;
+    int alpha;
+    int beta;
+    bool maximizingPlayer;
+    EvalResult result;
+} ThreadData;
+
+
+void *evaluate_move(void *arg) {
+    ThreadData *data = (ThreadData *)arg;
+    data->result = minmax(data->gameState, data->depth, data->alpha, data->beta, data->maximizingPlayer, data->move.col, data->move.row);
+    pthread_exit(NULL);
+}
+
 Move play_IA(GameState *gameState, int depth, bool debug) {
     DEBUG = debug;
-    int best_score = MIN_EVAL; // Utilisez MIN_EVAL qui est INT_MIN
-    Move best_move = {-1, -1}; // Initialisez best_move à une valeur non valide
+    int best_score = MIN_EVAL;
+    Move best_move = {-1, -1};
     int move_count;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-    Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
+    Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
+
+    pthread_t threads[move_count];
+    ThreadData threadData[move_count];
+
     for (int i = 0; i < move_count; i++) {
-        EvalResult result;
-        print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
-        result = minmax(gameState, depth, MIN_EVAL, MAX_EVAL, true, moves[i].col, moves[i].row);
-        print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s",
-            moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore, result.coup_gagnant? "Coup gagnant":"");
-        print("\n---------------\n");
-        if (result.coup_gagnant){
-            best_score = result.scoreDiff;
-            best_move = moves[i];
-            break;
+        threadData[i].gameState = gameState;
+        threadData[i].move = moves[i];
+        threadData[i].depth = depth;
+        threadData[i].alpha = MIN_EVAL;
+        threadData[i].beta = MAX_EVAL;
+        threadData[i].maximizingPlayer = true;
+        
+        if(pthread_create(&threads[i], NULL, evaluate_move, &threadData[i])) {
+            fprintf(stderr, "Error creating thread\n");
+            exit(1);
         }
-        if (result.scoreDiff > best_score) {
-            best_score = result.scoreDiff;
+    }
+    printf("%d threads crées\n", move_count);
+    for (int i = 0; i < move_count; i++) {
+        pthread_join(threads[i], NULL);
+
+        if (threadData[i].result.coup_gagnant || threadData[i].result.scoreDiff > best_score) {
+            best_score = threadData[i].result.scoreDiff;
             best_move = moves[i];
+            if (threadData[i].result.coup_gagnant) {
+                break;
+            }
         }
-        print("\n");
     }
 
-    if (best_move.col != -1 && best_move.row != -1) {
-        print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
-    } else {
-        print("Aucun mouvement possible trouvé\n");
-    }
-
-    free(moves); // Libérez la liste des mouvements possibles après utilisation
+    free(moves);
     return best_move;
 }
 
