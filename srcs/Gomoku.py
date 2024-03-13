@@ -1,16 +1,10 @@
 #!/bin/python3
-import sys
-try:
-    import argparse
-    import tkinter as tk
-    from gui import GomokuGUI
-    from game_logic import GomokuLogic
-    # from colorama import Fore,Style
-    from constants import VERSION
-except ModuleNotFoundError as e:
-    print(f"{e}")
-    print("Please type : pip install -r requirements.txt")
-    sys.exit(1)
+
+import argparse
+import tkinter as tk
+from gui import GomokuGUI
+from game_logic import GomokuLogic
+from constants import VERSION
 
 def is_gom_file(fileName):
     if not fileName.endswith(".gom"):

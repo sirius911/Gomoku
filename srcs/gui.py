@@ -1,10 +1,8 @@
 import tkinter as tk
-from tkinter import messagebox
 from constants import *
 from dialogs import EndGameDialog, CustomDialog
 from game_logic import GomokuLogic
 from tkinter import filedialog
-from constants import VERSION
 
 class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20, top_margin = 50):
