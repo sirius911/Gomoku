@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ai_logic.c                                         :+:      :+:    :+:   */
+/*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:44:11 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/13 11:30:55 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -278,8 +278,8 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         {-1, +1}, {0, +1}, {+1, +1}
     };
     // on coche toutes les cases autour d'un joueur si vide
-    for (int row = 0; row < SIZE; ++row) {
-        for (int col = 0; col < SIZE; ++col) {
+    for (int row = y1; row <= y2; ++row) {
+        for (int col = x1; col <= x2; ++col) {
             int index = idx(col, row);
             if (copie_board[index] != '0' && copie_board[index] != 'X'){
                 for (int i = 0; i < 8; i++){
@@ -311,8 +311,8 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         return NULL;
     }
     count = 0;
-    for (int row = 0; row < SIZE; ++row) {
-        for (int col = 0; col < SIZE; ++col) {
+    for (int row = y1; row <= y2; ++row) {
+        for (int col = x1; col <= x2; ++col) {
             int index = idx(col, row);
             if (copie_board[index] == 'X'){
                 moves[count].col = col;

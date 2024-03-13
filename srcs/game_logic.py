@@ -43,6 +43,10 @@ class GomokuLogic:
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
 
+    def manual_play(self, x, y):
+        if (0 <= x < self.size and 0 <= y < self.size):
+            self.board[(x, y)] = self.current_player
+
     def play(self, x, y):
 
         if (x, y) in self.board or not (0 <= x < self.size and 0 <= y < self.size):
@@ -56,6 +60,8 @@ class GomokuLogic:
         captured1, captured2 = self.check_capture(x, y, self.current_player)
         self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         
+        # self.sandBox()
+
         if self.check_win():
             return WIN_GAME
     
@@ -74,7 +80,7 @@ class GomokuLogic:
         play_time = end_time - start_time
         x, y = best_move.col,best_move.row
         if (x, y) == ( -1, -1):
-            print("x et y invalides")
+            print("x et y invalides")       #TODO
             self.switch_player()
             return WIN_GAME, play_time
         
@@ -203,3 +209,9 @@ class GomokuLogic:
             return True
         else:
             return False
+        
+    def sandBox(self):
+        gameState = self.getGameState()
+        self.libgame.nb_coups.restype = ctypes.c_int
+        nb_coup = self.libgame.nb_coups(gameState)
+        print(f"Nombre de coups évalués = {nb_coup}")

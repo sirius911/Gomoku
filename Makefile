@@ -5,7 +5,7 @@ UNAME_S := $(shell uname -s)
 PATH_LIB := lib/
 PATH_SRCS := c/
 
-SRC := utils.c game_logic.c minmax.c
+SRC := utils.c game_logic.c minmax.c sandBox.c
 SRCS := $(addprefix $(PATH_SRCS),$(SRC))
 OBJ := $(SRCS:.c=.o)
 
