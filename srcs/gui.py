@@ -1,10 +1,8 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog
 from constants import *
 from dialogs import EndGameDialog, CustomDialog
 from game_logic import GomokuLogic
-from tkinter import filedialog
-from constants import VERSION
 
 class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20, top_margin = 50):
@@ -182,7 +180,7 @@ class GomokuGUI:
         # Position pour le texte et le cercle
         text_x = self.margin // 4
         text_y = self.margin // 2
-        indicator_x = (self.margin // 2 + self.cell_size // 4) + 100
+        indicator_x = (self.margin // 2 + self.cell_size // 4) + 110
         indicator_y = self.margin // 2
         radius = self.cell_size // 4  # Taille de l'indicateur
 

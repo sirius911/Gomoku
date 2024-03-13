@@ -1,7 +1,6 @@
-import os
+# import os
 import platform
 import sys
-# import random
 from constants import *
 import time
 import ctypes
