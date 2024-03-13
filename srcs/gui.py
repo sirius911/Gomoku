@@ -201,7 +201,6 @@ class GomokuGUI:
         color = self.game_logic.current_player
 
         # Le texte "Player: "
-        print(f"self.edition = {self.edition.get()}")
         if self.edition.get():
             texte = "Edition for "
         else:
@@ -383,7 +382,7 @@ class GomokuGUI:
 
     def switch_edition(self):
         self.edition.set(not self.edition.get())
-        self.draw_current_player_indicator()
+        self.manual()
 
     def manual(self):
         # print(f"self.edition = {self.edition.get()}")

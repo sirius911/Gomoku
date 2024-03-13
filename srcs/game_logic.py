@@ -45,7 +45,10 @@ class GomokuLogic:
 
     def manual_play(self, x, y):
         if (0 <= x < self.size and 0 <= y < self.size):
-            self.board[(x, y)] = self.current_player
+            if self.board.get((x, y), '') == self.current_player:
+                del self.board[x,y]
+            else:
+                self.board[(x, y)] = self.current_player
 
     def play(self, x, y):
 
