@@ -96,6 +96,13 @@ class GomokuGUI:
         self.draw_current_player_indicator()
         self.update_captures_display(self.game_logic.captures)
 
+        # Ajout du label pour afficher les coordonnées de la souris
+        self.mouse_coords_label = tk.Label(master, text="ici")
+        self.mouse_coords_label.place(relx=0.0, rely=1.0, x=10, y=-10, anchor="sw")
+
+        # Liez l'événement de mouvement de la souris sur le canvas à la fonction update_mouse_coords
+        self.canvas.bind("<Motion>", self.update_mouse_coords)
+
     @property
     def pixel_size(self):
         return self.size * self.cell_size + self.margin * 2
@@ -391,3 +398,9 @@ class GomokuGUI:
         if not self.edition.get():
             if self.is_IA_turn():
                 self.ia_play()
+
+    def update_mouse_coords(self, event):
+        # Convertissez les pixels en coordonnées de grille
+        grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
+        # Mettez à jour le label avec les coordonnées de la grille
+        self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")

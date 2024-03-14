@@ -209,6 +209,7 @@ class GomokuLogic:
             if (captured1, captured2) != (None, None):
                 self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
                 self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
+                self.captures[player] -= 2
             return True
         else:
             return False
