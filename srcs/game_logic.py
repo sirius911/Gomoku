@@ -39,6 +39,7 @@ class GomokuLogic:
         self.debug = debug
         self.ia_level = ia_level
         self.history = []
+        self.threads = False
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
@@ -74,16 +75,21 @@ class GomokuLogic:
         return self.ia[self.current_player]
     
     def play_IA(self):
+        
         gameState = self.getGameState()
         self.libgame.analyse(gameState, self.debug)
-        self.libgame.play_IA.restype = Move
         start_time = time.time()
-        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        if self.threads:
+            self.libgame.play_IA_threads.restype = Move
+            best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
+        else:
+            self.libgame.play_IA.restype = Move
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
         end_time = time.time()
         play_time = end_time - start_time
         x, y = best_move.col,best_move.row
         if (x, y) == ( -1, -1):
-            print("x et y invalides")       #TODO
+            print("Abandon prochain coup gagnant !!")       #TODO
             self.switch_player()
             return WIN_GAME, play_time
         
@@ -97,8 +103,12 @@ class GomokuLogic:
     
     def help_IA(self):
         gameState = self.getGameState()
-        self.libgame.play_IA.restype = Move
-        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        if self.threads:
+            self.libgame.play_IA.restype = Move
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        else:
+            self.libgame.play_IA_threads.restype = Move
+            best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
         return best_move.col,best_move.row
     
     def check_win(self):

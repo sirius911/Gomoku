@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/13 16:16:09 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/14 17:34:29 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
 }
 
 
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY) {
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth) {
     char winner = '0';
     GameState *child_gameState = apply_move(gameState, currentMoveX, currentMoveY);
     if (game_over(child_gameState, &winner) || depth == 0) {
@@ -94,6 +94,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 
         EvalResult result;
         result.coup_gagnant = false;
+        result.coup_perdant = false;
         if (winner != '0'){
             // un gagnant ou match null
             // TODO gestion de winner == 'N' -> match Null
@@ -106,6 +107,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
                 result.scoreDiff = INT_MIN + depth; // La pénalité est moindre pour les défaites tardives
                 result.playerScore = INT_MIN + depth;
                 result.opponentScore = INT_MAX - depth;
+                result.coup_perdant = true;
             }
         } else {
             print("\t== Eval pour pour %c ==\n",
@@ -120,9 +122,10 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
             result.scoreDiff = result.playerScore - result.opponentScore;
         }
-        print("\tScore : %c= %d,  %c= %d -> diff= %d\n\t capture B:%d, W:%d\n",
+        print("\tScore : %c= %d,  %c= %d -> diff= %d\n\t capture B:%d, W:%d %s%s\n",
             child_gameState->currentPlayer , result.playerScore, 
-            adversaire(child_gameState->currentPlayer), result.opponentScore, result.scoreDiff, gameState->captures[0], gameState->captures[1]);
+            adversaire(child_gameState->currentPlayer), result.opponentScore, result.scoreDiff, gameState->captures[0], gameState->captures[1],
+            result.coup_gagnant? "Coup gagnant":"", result.coup_perdant? "Coup perdant":"");
         free_gameState(child_gameState);
         return result;
     }
@@ -139,10 +142,15 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         findBoxElements(child_gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
+            EvalResult result;
             print("\t+ Si %c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
-
-            EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
-
+            result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, maxDepth);
+            if (result.coup_perdant && depth == maxDepth){
+                maxEval = result.scoreDiff;
+                result.coup = moves[i];
+                bestResult = result;
+                print(" -break- coup perdant!\n");
+                break;}
             if(result.scoreDiff > maxEval) {
                 maxEval = result.scoreDiff;
                 result.coup = moves[i];
@@ -154,16 +162,16 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             
             alpha = (result.scoreDiff > alpha) ? result.scoreDiff : alpha;
             if (beta <= alpha) {
-                print("- break \n");
+                print("- break Elagage\n");
                 break;
             }
         }
         free(moves);
-        print("\t\tMeilleur score de %c si %c(%d,%d), score=%d  %c=%d, %c=%d\n",
+        print("\t\tMeilleur score de %c si %c(%d,%d), score=%d  %c=%d, %c=%d %s%s\n",
         adversaire(child_gameState->currentPlayer), child_gameState->currentPlayer, bestResult.coup.col, bestResult.coup.row,
         bestResult.scoreDiff,
         child_gameState->currentPlayer, bestResult.playerScore,
-        adversaire(child_gameState->currentPlayer), bestResult.opponentScore);
+        adversaire(child_gameState->currentPlayer), bestResult.opponentScore, bestResult.coup_gagnant?"Coup gagnant":"",bestResult.coup_perdant?"Coup perdant":"");
     } else {
         int minEval = MAX_EVAL;
         int move_count;
@@ -176,8 +184,16 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
             print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
-           EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
- 
+           EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, maxDepth);
+            
+            if (result.coup_gagnant && depth == maxDepth){
+                minEval = result.scoreDiff;
+                result.coup = moves[i];
+                bestResult = result;
+                print(" - break - Coup gagnant !\n");
+                break;
+            }
+
             if (result.scoreDiff < minEval) {
                 minEval = result.scoreDiff;
                 result.coup = moves[i];
@@ -194,11 +210,11 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
         }
         free(moves);
-        print("\tMeilleur score de %c si %c(%d,%d), Score: %d, %c=%d, %c=%d\n",
+        print("\tMeilleur score de %c si %c(%d,%d), Score: %d, %c=%d, %c=%d%s%s\n",
         adversaire(opponent), opponent, bestResult.coup.col, bestResult.coup.row, 
         bestResult.scoreDiff,
         opponent, bestResult.playerScore,
-        adversaire(opponent), bestResult.opponentScore);
+        adversaire(opponent), bestResult.opponentScore, bestResult.coup_gagnant?"Coup gagnant":"",bestResult.coup_perdant?"Coup perdant":"");
     }
     return bestResult;
 }
@@ -214,9 +230,10 @@ Move play_IA(GameState *gameState, int depth, bool debug) {
     for (int i = 0; i < move_count; i++) {
         EvalResult result;
         print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
-        result = minmax(gameState, depth, MIN_EVAL, MAX_EVAL, true, moves[i].col, moves[i].row);
-        print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s",
-            moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore, result.coup_gagnant? "Coup gagnant":"");
+        result = minmax(gameState, depth, MIN_EVAL, MAX_EVAL, true, moves[i].col, moves[i].row, depth);
+        print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
+            moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore,
+            result.coup_gagnant? "Coup gagnant":"", result.coup_perdant? "Coup perdant":"");
         print("\n---------------\n");
         if (result.coup_gagnant){
             best_score = result.scoreDiff;

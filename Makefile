@@ -5,7 +5,7 @@ UNAME_S := $(shell uname -s)
 PATH_LIB := lib/
 PATH_SRCS := c/
 
-SRC := utils.c game_logic.c minmax.c sandBox.c
+SRC := utils.c game_logic.c minmax.c sandBox.c threads.c
 SRCS := $(addprefix $(PATH_SRCS),$(SRC))
 OBJ := $(SRCS:.c=.o)
 
@@ -48,7 +48,7 @@ opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
 opti: $(TARGET)
 
 run: $(TARGET)
-	-srcs/Gomoku.py
+	-python3 srcs/Gomoku.py
 # Règle pour nettoyer les fichiers compilés
 clean:
 	rm -f $(TARGET) $(OBJ)
