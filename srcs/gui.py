@@ -58,6 +58,9 @@ class GomokuGUI:
         ia_menu.add_radiobutton(label="Level 1", variable=self.ia_level_var, value=1, command=self.toggle_ia_level)
         ia_menu.add_radiobutton(label="Level 2", variable=self.ia_level_var, value=2, command=self.toggle_ia_level)
         ia_menu.add_radiobutton(label="Level 3", variable=self.ia_level_var, value=3, command=self.toggle_ia_level)
+        self.threads = tk.BooleanVar()
+        ia_menu.add_separator()
+        ia_menu.add_checkbutton(label="Threads", variable=self.threads, command=self.toggle_threads)
         
         #info
         self.debug = tk.BooleanVar()
@@ -404,3 +407,6 @@ class GomokuGUI:
         grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
         # Mettez à jour le label avec les coordonnées de la grille
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
+
+    def toggle_threads(self):
+        self.game_logic.threads = (self.threads.get() == 1)
