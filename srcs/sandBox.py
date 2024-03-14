@@ -20,16 +20,20 @@ def main(debug, filepath, ia, threads):
     result = CONTINUE_GAME
     temps_total = 0
     nb_coup = 0
+    max_time = 0
+    min_time = float('inf')
     while result == CONTINUE_GAME:
-        print("*",end='', flush=True)
+        print(f"{game_logic.current_player[0]}",end='', flush=True)
         result, t = game_logic.play_IA()
-        print("+",end='', flush=True)
+        print(".",end='', flush=True)
         temps_total += t
         nb_coup += 1
+        max_time = max(max_time, t)
+        min_time = min(min_time, t)
     if result == WIN_GAME:
          print(f"\nWinner : {Fore.GREEN}{game_logic.current_player}{Style.RESET_ALL}")
     moyenne = temps_total/nb_coup
-    print(f"\nTemps moyen pour une partie de {Fore.BLUE}{nb_coup}{Style.RESET_ALL} coups (ia={Fore.YELLOW}{game_logic.ia_level}{Style.RESET_ALL}) Threads={Fore.BLUE if threads else Fore.MAGENTA}{threads}{Style.RESET_ALL} => {Fore.GREEN if moyenne < 1 else Fore.RED}{moyenne:.02f}{Style.RESET_ALL} s/coup")
+    print(f"\nTemps moyen pour une partie de {Fore.BLUE}{nb_coup}{Style.RESET_ALL} coups (ia={Fore.YELLOW}{game_logic.ia_level}{Style.RESET_ALL}) Threads={Fore.BLUE if threads else Fore.MAGENTA}{threads}{Style.RESET_ALL} => {Fore.GREEN if moyenne < 1 else Fore.RED}{moyenne:.02f}{Style.RESET_ALL} s/coup Max = {Fore.RED}{max_time:.02f}{Style.RESET_ALL}s Min = {Fore.GREEN}{min_time:.02f}{Style.RESET_ALL}s")
 
 
 if __name__ == "__main__":
