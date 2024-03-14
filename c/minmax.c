@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/13 11:30:55 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/13 16:16:09 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,8 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
                 result.opponentScore = INT_MAX - depth;
             }
         } else {
+            print("\t== Eval pour pour %c ==\n",
+                child_gameState->currentPlayer);
             // Pas de vainqueur ou profondeur atteinte, évaluer la position
             if (maximizingPlayer) {
                 result.playerScore = _evaluate_player(child_gameState, gameState->currentPlayer);
@@ -119,8 +121,8 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             result.scoreDiff = result.playerScore - result.opponentScore;
         }
         print("\tScore : %c= %d,  %c= %d -> diff= %d\n\t capture B:%d, W:%d\n",
-            gameState->currentPlayer , result.playerScore, opponent, result.opponentScore, result.scoreDiff, gameState->captures[0], gameState->captures[1]);
-
+            child_gameState->currentPlayer , result.playerScore, 
+            adversaire(child_gameState->currentPlayer), result.opponentScore, result.scoreDiff, gameState->captures[0], gameState->captures[1]);
         free_gameState(child_gameState);
         return result;
     }
@@ -157,8 +159,8 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
         }
         free(moves);
-        print("\t\tMeilleur coup pour %c(%d,%d), score=%d  %c=%d, %c=%d\n",
-        child_gameState->currentPlayer, bestResult.coup.col, bestResult.coup.row,
+        print("\t\tMeilleur score de %c si %c(%d,%d), score=%d  %c=%d, %c=%d\n",
+        adversaire(child_gameState->currentPlayer), child_gameState->currentPlayer, bestResult.coup.col, bestResult.coup.row,
         bestResult.scoreDiff,
         child_gameState->currentPlayer, bestResult.playerScore,
         adversaire(child_gameState->currentPlayer), bestResult.opponentScore);
@@ -192,8 +194,8 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
         }
         free(moves);
-        print("\tMeilleur coup pour %c(%d,%d), Score: %d, %c=%d, %c=%d\n",
-        opponent, bestResult.coup.col, bestResult.coup.row, 
+        print("\tMeilleur score de %c si %c(%d,%d), Score: %d, %c=%d, %c=%d\n",
+        adversaire(opponent), opponent, bestResult.coup.col, bestResult.coup.row, 
         bestResult.scoreDiff,
         opponent, bestResult.playerScore,
         adversaire(opponent), bestResult.opponentScore);
@@ -224,6 +226,7 @@ Move play_IA(GameState *gameState, int depth, bool debug) {
         if (result.scoreDiff > best_score) {
             best_score = result.scoreDiff;
             best_move = moves[i];
+            print("*=* Meilleur coup pour IA *=*\n");
         }
         print("\n");
     }
