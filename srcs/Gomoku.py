@@ -11,9 +11,10 @@ def is_gom_file(fileName):
         raise argparse.ArgumentTypeError("Le fichier doit avoir l'extension '.gom'")
     return fileName
 
-def main(debug, load):
+def main(debug, load, threads):
     root = tk.Tk()
     game_logic = GomokuLogic(debug=debug)
+    game_logic.threads = threads
     gui = GomokuGUI(root, game_logic)
     if load is not None:
        gui.load_game(load)
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Gomoku : Gomoku 42 Game. ({VERSION})")
     parser.add_argument("-d", "--debug", action="store_true", help="Debug option.")
     parser.add_argument("load", nargs='?', type=is_gom_file, help="load file *.go", default=None)
+    parser.add_argument("-t","--threads", action="store_true", help="Ia with threads")
     
     args = parser.parse_args()
-    main(args.debug, args.load)
+    main(args.debug, args.load, args.threads)

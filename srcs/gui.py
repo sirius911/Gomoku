@@ -327,7 +327,7 @@ class GomokuGUI:
 
     def version(self):
         title = f"Gomoku {VERSION}"
-        message = f"{title}\n@ clorin@student.42.fr"
+        message = f"{title}\n @ clorin@student.42.fr \n @ thoberth@student.42.fr \n"
         CustomDialog(parent=self.master, title=title,message=message, alert_type='info')
 
     def update_title(self):

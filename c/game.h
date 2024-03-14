@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/13 11:04:19 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/14 17:36:58 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ typedef struct {
     int opponentScore;
     Move coup;
     bool coup_gagnant;
+    bool coup_perdant;
 } EvalResult;
 
 typedef struct GameState {
@@ -71,8 +72,9 @@ bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
 
 // Prototypes des fonctions ai_logic
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth);
 Move play_IA(GameState *gameState, int depth, bool debug);
+Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
 Move* generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
