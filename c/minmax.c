@@ -6,13 +6,14 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/14 17:34:29 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/15 11:34:39 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
 
-bool DEBUG = false; 
+bool DEBUG = false;
+bool STAT = false;
 
 void    free_gameState(GameState *game) {
     if (game) {
@@ -81,6 +82,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
         else
             new_gameState->captures[1] += 2;
     }
+    print_stat(".");
     return new_gameState; // Retourne la nouvelle copie avec le mouvement appliqué
 }
 
@@ -132,7 +134,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 
     char opponent = adversaire(gameState->currentPlayer);
     EvalResult bestResult;
-
+    // printf("\n%d ",depth);
     if (maximizingPlayer) {
         int maxEval = MIN_EVAL;
         int move_count;
@@ -219,17 +221,20 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
     return bestResult;
 }
 
-Move play_IA(GameState *gameState, int depth, bool debug) {
+Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
     DEBUG = debug;
+    STAT = stat;
     int best_score = MIN_EVAL; // Utilisez MIN_EVAL qui est INT_MIN
     Move best_move = {-1, -1}; // Initialisez best_move à une valeur non valide
     int move_count;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
+    print_stat("\n#\n");
     for (int i = 0; i < move_count; i++) {
         EvalResult result;
         print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
+        // printf("\n*\n");
         result = minmax(gameState, depth, MIN_EVAL, MAX_EVAL, true, moves[i].col, moves[i].row, depth);
         print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
             moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore,
@@ -247,7 +252,6 @@ Move play_IA(GameState *gameState, int depth, bool debug) {
         }
         print("\n");
     }
-
     if (best_move.col != -1 && best_move.row != -1) {
         print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
     } else {
@@ -343,6 +347,8 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
     }
     *move_count = count;
     free(copie_board);
+    // printf("%d\n",count);
+    // printf("\n");
     return moves;
 }
 
