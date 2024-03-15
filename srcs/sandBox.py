@@ -1,4 +1,5 @@
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -20,18 +21,24 @@ def play_stat(fileName, ia):
         result, _ = game_logic.play_IA()
 
 def create_log(fileName,ia):
-    nom_fichier = f"stats/level{ia}.log"
     if fileName is None:
         fileName = ""
-    print(f"Création de {nom_fichier}... ", end='', flush=True)
+        nom_fichier = f"stats/level{ia}.log"
+    else:
+        nom_fichier = f"stats/{os.path.splitext(os.path.basename(fileName))[0]}{ia}.log"
+    print(f"Création de {nom_fichier} ... ", end='', flush=True)
     commande = f"python3 srcs/sandBox.py -c -i {ia} {fileName}"
     with open(nom_fichier, 'w') as fichier_log:
         subprocess.run(commande, shell=True, stdout=fichier_log, stderr=subprocess.STDOUT)
     print("Terminé.", flush=True)
     time.sleep(1)
 
-def compter_points_par_bloc(ia):
-    nom_fichier = f"stats/level{ia}.log"
+def compter_points_par_bloc(fileName, ia):
+    if fileName is None:
+        fileName = ""
+        nom_fichier = f"stats/level{ia}.log"
+    else:
+        nom_fichier = f"stats/{os.path.splitext(os.path.basename(fileName))[0]}{ia}.log"
     resultats = []  # Liste pour stocker les résultats de chaque bloc
     compteur_points = 0  # Compteur pour les points du bloc actuel
     dans_un_bloc = False  # Indicateur de la présence dans un bloc
@@ -67,14 +74,15 @@ def compter_points_par_bloc(ia):
         return
     return resultats
 
-def graph(tab_time, coups, nb_coup, threads):
+def graph(tab_time, coups, nb_coup, threads, fileName):
     plt.plot(coups, tab_time, marker='o')  # 'o' pour afficher les points de données
 
     # Ajout de titres aux axes et au graphique
     plt.xlabel('Nombre de tests')
     plt.ylabel('Temps (s)')
     thread = "\n[Threads]" if threads else ""
-    plt.title(f'Partie de {nb_coup} coup(s)\nTemps en fonction du nombre de tests{thread}')
+    name  = os.path.splitext(os.path.basename(fileName))[0] if fileName is not None else ""
+    plt.title(f'Partie de {nb_coup} coup(s) {name}\nTemps en fonction du nombre de tests{thread}')
 
     # Affichage du graphique
     plt.show()
@@ -118,8 +126,8 @@ def main(filepath, ia, threads):
     print(f"{''if filepath is None else filepath}Partie en cours")
     tab_time, nb_coup = play_game(game_logic)
     print("Terminée")
-    coups = compter_points_par_bloc(ia)
-    graph(tab_time, coups, nb_coup, threads)
+    coups = compter_points_par_bloc(filepath, ia)
+    graph(tab_time, coups, nb_coup, threads, filepath)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=f"Gomoku : Gomoku 42 Game. ({VERSION})")
