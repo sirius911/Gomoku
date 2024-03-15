@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:48:23 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/15 11:31:48 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,15 @@
 
 void print(const char *format, ...){
     if(DEBUG) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
+}
+
+void print_stat(const char *format, ...){
+    if(STAT) {
         va_list args;
         va_start(args, format);
         vprintf(format, args);

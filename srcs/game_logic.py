@@ -40,6 +40,7 @@ class GomokuLogic:
         self.ia_level = ia_level
         self.history = []
         self.threads = False
+        self.stat = False
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
@@ -84,7 +85,7 @@ class GomokuLogic:
             best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
         else:
             self.libgame.play_IA.restype = Move
-            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
         end_time = time.time()
         play_time = end_time - start_time
         x, y = best_move.col,best_move.row
@@ -105,7 +106,7 @@ class GomokuLogic:
         gameState = self.getGameState()
         if self.threads:
             self.libgame.play_IA.restype = Move
-            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
         else:
             self.libgame.play_IA_threads.restype = Move
             best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
