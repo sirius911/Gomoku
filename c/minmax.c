@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/13 16:16:09 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/15 18:32:47 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
 
-bool DEBUG = false; 
+bool DEBUG = false;
 
 void    free_gameState(GameState *game) {
     if (game) {
@@ -177,7 +177,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         for (int i = 0; i < move_count; i++) {
             print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
            EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
- 
+
             if (result.scoreDiff < minEval) {
                 minEval = result.scoreDiff;
                 result.coup = moves[i];
@@ -263,6 +263,26 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
+int score_move(char* copie_board, Move *move, int count, const char current_player){
+	/*
+	Add a score to sort the moves depending on:
+		- Sequences with other stone of the same color
+		- stopping an opponent sequence
+		- Create or continue sequences
+	*/
+	// print("%c", current_player);
+	// for (int i = 0; copie_board[i]; i++)
+	// {
+	// 	if (i % 19 == 0)
+	// 		print("\n");
+	// 	print("%c", copie_board[i]);
+	// }
+	// print("\n\n");
+	
+	print("%d %d %d\n", move[count].col, move[count].row, count_sequences(copie_board, current_player, 2));
+	return 0;
+}
+
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
     /*  XXX
         XBX
@@ -320,10 +340,13 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
             if (copie_board[index] == 'X'){
                 moves[count].col = col;
                 moves[count].row = row;
+				print("%d %d | ", col, row);
+				moves[count].score = score_move(copie_board, &moves[count], count, current_player);
                 count++;
             }
         }
     }
+	// sort_moves(&moves)
     *move_count = count;
     free(copie_board);
     return moves;
