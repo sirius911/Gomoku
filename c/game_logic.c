@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_logic.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:51:51 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/13 14:14:26 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/16 10:53:35 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,6 +237,8 @@ bool isAlignment(const char *board, int x, int y, char current_player) {
 
 // La fonction générique pour compter les séquences de pierres de taille spécifique.
 int count_sequences(const char *board, char player, int base_taille_seq) {
+	// print("COUNT SEQUENCE\n");
+	// print_board(board, player);
     const int nb_dir = 8;
     const int nb_good = 3;
     const int taille_seq = base_taille_seq + 2; // Ajustement pour inclure les espaces de contrôle

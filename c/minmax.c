@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/15 18:32:47 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/16 11:52:31 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ int _evaluate_player(const GameState *gameState, char player) {
     score += gameState->captures[num_player] * 100 ;
     return score;
 }
+
 int _evaluate_opponent(const GameState *gameState, char opponent) {
     int score = 0;
     int num_player =( opponent == 'B')? 0:1;
@@ -176,7 +177,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
             print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
-           EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
+        EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
 
             if (result.scoreDiff < minEval) {
                 minEval = result.scoreDiff;
@@ -186,7 +187,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
             else
                 print("\n");
-           beta = (result.scoreDiff < beta) ? result.scoreDiff : beta;
+        beta = (result.scoreDiff < beta) ? result.scoreDiff : beta;
             
             if (beta <= alpha) {
                 print("- break -\n");
@@ -263,24 +264,18 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-int score_move(char* copie_board, Move *move, int count, const char current_player){
-	/*
-	Add a score to sort the moves depending on:
-		- Sequences with other stone of the same color
-		- stopping an opponent sequence
-		- Create or continue sequences
-	*/
-	// print("%c", current_player);
-	// for (int i = 0; copie_board[i]; i++)
-	// {
-	// 	if (i % 19 == 0)
-	// 		print("\n");
-	// 	print("%c", copie_board[i]);
-	// }
-	// print("\n\n");
-	
-	print("%d %d %d\n", move[count].col, move[count].row, count_sequences(copie_board, current_player, 2));
-	return 0;
+int score_move(char* copie_board, Move *move, const char current_player){
+    /*
+    Add a score to sort the moves depending on:
+        - Sequences with other stone of the same color
+        - stopping an opponent sequence
+        - Create or continue sequences
+        - Make capture
+    */
+    move->score = heuristic(copie_board, move, current_player);
+    // + heuristique_stopping_opponent()
+    // print("%d %d %d\n", move->col, move->row, move->score);
+    return 0;
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
@@ -340,13 +335,14 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
             if (copie_board[index] == 'X'){
                 moves[count].col = col;
                 moves[count].row = row;
-				print("%d %d | ", col, row);
-				moves[count].score = score_move(copie_board, &moves[count], count, current_player);
+                // if (count == 0)
+                //     print_board(copie_board, current_player);
+                moves[count].score = score_move(copie_board, &moves[count], current_player);
                 count++;
             }
         }
     }
-	// sort_moves(&moves)
+    // sort_moves(&moves)
     *move_count = count;
     free(copie_board);
     return moves;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:48:23 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/15 21:37:24 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,17 @@ void print_sequences_board(char *board, const char *entete) {
     print(" %s", b5 ? "Winner\n":"\n");
     print("%sWhite [2]:%d - [3]:%d = [4]:%d\n",entete,w2,w3,w4);
     print(" %s", w5 ? "Winner\n":"\n");
+}
+
+void print_board(const char* board, const char current_player){
+	print("Current player = %c\n", current_player);
+	for (int i = 0; board[i]; i++)
+	{
+		if (i % SIZE == 0)
+			print("\n");
+		print("%c", board[i]);
+	}
+	print("\n\n");
 }
 
 void free_moves(Move* moves) {

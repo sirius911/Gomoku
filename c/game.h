@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/15 12:25:38 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/16 11:48:15 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,8 @@ char *put(char *board, char c, int x, int y);
 int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb);
 void print_sequence(const int *seq, int lenght);
 void print_sequences_board(char *board, const char *entete);
-void free_moves(Move* moves);
+void print_board(const char *board, const char current_player);
+void free_moves(Move *moves);
 
 // Prototypes des fonctions game_logic
 void findBoxElements(const char *board, int *topLeftX, int *topLeftY, int *bottomRightX, int *bottomRightY);
@@ -75,11 +76,16 @@ int count_sequences(const char *board, char player, int base_taille_seq);
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
 Move play_IA(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-int score_move(char *copie_board, Move *move, int index, const char current_player);
+int score_move(char *copie_board, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
+
+// Protoypes des fonctions dans heuristic.c
+int heuristic(const char *copie_board, Move *move, const char current_player);
+char **create_map(const char *copie_board, int col, int row, const char current_player);
+void free_map(char **map);
 
 #endif // GAME_H
