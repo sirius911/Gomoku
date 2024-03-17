@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/15 21:37:24 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/17 21:05:22 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void print_board(const char* board, const char current_player){
 	{
 		if (i % SIZE == 0)
 			print("\n");
-		print("%c", board[i]);
+		print("%c ", board[i]);
 	}
 	print("\n\n");
 }

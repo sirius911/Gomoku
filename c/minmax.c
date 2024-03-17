@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/16 11:52:31 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/17 23:31:34 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,18 +264,19 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-int score_move(char* copie_board, Move *move, const char current_player){
+void score_move(char* copie_board, Move *move, const char current_player){
     /*
     Add a score to sort the moves depending on:
         - Sequences with other stone of the same color
         - stopping an opponent sequence
-        - Create or continue sequences
         - Make capture
     */
-    move->score = heuristic(copie_board, move, current_player);
-    // + heuristique_stopping_opponent()
-    // print("%d %d %d\n", move->col, move->row, move->score);
-    return 0;
+    char opponent_player = (current_player == 'B')?'W':'B';
+    char **map = create_map(copie_board, move->col, move->row, current_player);
+    move->score = heuristic(copie_board, move, current_player, map);
+    map[move->row][move->col] = opponent_player;
+    move->score += heuristic(copie_board, move, opponent_player, map);
+    free_map(map);
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
@@ -328,6 +329,9 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         fprintf(stderr, "Allocation de mémoire échouée\n");
         return NULL;
     }
+    for (int i = 0; i < MAX_MOVES; i++) { // initialisation de score
+        moves[i].score = 0;
+    }
     count = 0;
     for (int row = y1; row <= y2; ++row) {
         for (int col = x1; col <= x2; ++col) {
@@ -335,14 +339,15 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
             if (copie_board[index] == 'X'){
                 moves[count].col = col;
                 moves[count].row = row;
-                // if (count == 0)
-                //     print_board(copie_board, current_player);
-                moves[count].score = score_move(copie_board, &moves[count], current_player);
+                score_move(copie_board, &moves[count], current_player);
                 count++;
             }
         }
     }
-    // sort_moves(&moves)
+    qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
+    for (int i = 0; i<MAX_MOVES;i++) {
+        print("score num[%d] = %d\n", i, moves[i].score);
+    }
     *move_count = count;
     free(copie_board);
     return moves;
