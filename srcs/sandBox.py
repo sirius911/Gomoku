@@ -107,6 +107,7 @@ def play_game(game_logic):
          print(f"\nWinner : {Fore.GREEN}{game_logic.current_player}{Style.RESET_ALL}")
     moyenne = temps_total/nb_coup
     print(f"\nTemps moyen pour une partie de {Fore.BLUE}{nb_coup}{Style.RESET_ALL} coups (ia={Fore.YELLOW}{game_logic.ia_level}{Style.RESET_ALL}) Threads={Fore.BLUE if game_logic.threads else Fore.MAGENTA}{game_logic.threads}{Style.RESET_ALL} => {Fore.GREEN if moyenne < 1 else Fore.RED}{moyenne:.02f}{Style.RESET_ALL} s/coup Max = {Fore.RED}{max_time:.02f}{Style.RESET_ALL}s Min = {Fore.GREEN}{min_time:.02f}{Style.RESET_ALL}s")
+    time.sleep(1)
     return tab_time, nb_coup
 
 def init_game(filepath, ia, threads):
