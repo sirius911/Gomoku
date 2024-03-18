@@ -3,10 +3,9 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/11 18:55:06 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/15 11:34:39 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/17 23:31:34 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +37,7 @@ int _evaluate_player(const GameState *gameState, char player) {
     score += gameState->captures[num_player] * 100 ;
     return score;
 }
+
 int _evaluate_opponent(const GameState *gameState, char opponent) {
     int score = 0;
     int num_player =( opponent == 'B')? 0:1;
@@ -185,7 +185,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         findBoxElements(child_gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
         Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
-            print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
+           print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
            EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, maxDepth);
             
             if (result.coup_gagnant && depth == maxDepth){
@@ -195,7 +195,6 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
                 print(" - break - Coup gagnant !\n");
                 break;
             }
-
             if (result.scoreDiff < minEval) {
                 minEval = result.scoreDiff;
                 result.coup = moves[i];
@@ -204,7 +203,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             }
             else
                 print("\n");
-           beta = (result.scoreDiff < beta) ? result.scoreDiff : beta;
+        beta = (result.scoreDiff < beta) ? result.scoreDiff : beta;
             
             if (beta <= alpha) {
                 print("- break -\n");
@@ -284,6 +283,21 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
+void score_move(char* copie_board, Move *move, const char current_player){
+    /*
+    Add a score to sort the moves depending on:
+        - Sequences with other stone of the same color
+        - stopping an opponent sequence
+        - Make capture
+    */
+    char opponent_player = (current_player == 'B')?'W':'B';
+    char **map = create_map(copie_board, move->col, move->row, current_player);
+    move->score = heuristic(copie_board, move, current_player, map);
+    map[move->row][move->col] = opponent_player;
+    move->score += heuristic(copie_board, move, opponent_player, map);
+    free_map(map);
+}
+
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
     /*  XXX
         XBX
@@ -334,6 +348,9 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         fprintf(stderr, "Allocation de mémoire échouée\n");
         return NULL;
     }
+    for (int i = 0; i < MAX_MOVES; i++) { // initialisation de score
+        moves[i].score = 0;
+    }
     count = 0;
     for (int row = y1; row <= y2; ++row) {
         for (int col = x1; col <= x2; ++col) {
@@ -341,9 +358,14 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
             if (copie_board[index] == 'X'){
                 moves[count].col = col;
                 moves[count].row = row;
+                score_move(copie_board, &moves[count], current_player);
                 count++;
             }
         }
+    }
+    qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
+    for (int i = 0; i<MAX_MOVES;i++) {
+        print("score num[%d] = %d\n", i, moves[i].score);
     }
     *move_count = count;
     free(copie_board);

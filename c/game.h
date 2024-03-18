@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/15 11:33:22 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/17 23:29:30 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ extern bool STAT;
 typedef struct {
     int col;
     int row;
+	int score;
 } Move;
 
 typedef struct {
@@ -61,7 +62,8 @@ char *put(char *board, char c, int x, int y);
 int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb);
 void print_sequence(const int *seq, int lenght);
 void print_sequences_board(char *board, const char *entete);
-void free_moves(Move* moves);
+void print_board(const char *board, const char current_player);
+void free_moves(Move *moves);
 
 // Prototypes des fonctions game_logic
 void findBoxElements(const char *board, int *topLeftX, int *topLeftY, int *bottomRightX, int *bottomRightY);
@@ -78,10 +80,17 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-Move* generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
+void score_move(char *copie_board, Move *move, const char current_player);
+Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
+
+// Protoypes des fonctions dans heuristic.c
+int heuristic(const char *copie_board, Move *move, const char current_player, char **map);
+int compare_age(void const *a, void const *b);
+char **create_map(const char *copie_board, int col, int row, const char current_player);
+void free_map(char **map);
 
 #endif // GAME_H
