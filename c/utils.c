@@ -21,6 +21,15 @@ void print(const char *format, ...){
     }
 }
 
+void print_stat(const char *format, ...){
+    if(STAT) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
+}
+
 // Fonction pour vérifier si une position (x, y) est valide sur le plateau.
 bool is_valid_position(int x, int y) {
     return x >= 0 && x < SIZE && y >= 0 && y < SIZE;

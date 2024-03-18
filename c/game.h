@@ -27,7 +27,8 @@
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
 
-extern bool DEBUG;
+extern bool DEBUG;  
+extern bool STAT;
 
 typedef struct {
     int col;
@@ -41,6 +42,7 @@ typedef struct {
     int opponentScore;
     Move coup;
     bool coup_gagnant;
+    bool coup_perdant;
 } EvalResult;
 
 typedef struct GameState {
@@ -51,6 +53,7 @@ typedef struct GameState {
 
 // Prototypes des fonctions utils
 void print(const char *format, ...);
+void print_stat(const char *format, ...);
 bool is_valid_position(int x, int y);
 int idx(int x, int y);
 char adversaire(const char player);
@@ -73,8 +76,9 @@ bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
 
 // Prototypes des fonctions ai_logic
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
-Move play_IA(GameState *gameState, int depth, bool debug);
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth);
+Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
+Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
 void score_move(char *copie_board, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
