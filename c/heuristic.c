@@ -6,13 +6,13 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/17 23:29:26 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/18 18:01:47 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
 
-int heuristic(const char *copie_board, Move *move, const char current_player, char **map){
+int heuristic(Move *move, const char current_player, char **map){
 	/**
 	 * This function return a score depending on:
 	 * Sequences this move can create or continue
@@ -105,7 +105,7 @@ int compare_age(const void *a, const void *b)
 	return (moveB->score - moveA->score);
 }
 
-char** create_map(const char* copie_board, int col, int row, const char current_player){
+char** create_map(const char* copie_board){
 	char **map = (char**)malloc(SIZE * sizeof(char *));
 	if(map == NULL) {
 		fprintf(stderr, "Allocation de mémoire échouée\n");
@@ -121,9 +121,7 @@ char** create_map(const char* copie_board, int col, int row, const char current_
 	int index = 0;
 	for (int x = 0; x < SIZE; x++){
 		for (int y = 0; y < SIZE; y++){
-			if (col == y && row == x)
-				map[x][y] = current_player;
-			else if (copie_board[index] == 'X')
+			if (copie_board[index] == 'X')
 				map[x][y] = '0';
 			else
 				map[x][y] = copie_board[index];

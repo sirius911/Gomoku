@@ -5,7 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Updated: 2024/03/17 23:31:34 by thoberth         ###   ########.fr       */
+/*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
+/*   Updated: 2024/03/18 18:02:50 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -283,7 +284,7 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-void score_move(char* copie_board, Move *move, const char current_player){
+void score_move(char** map, Move *move, const char current_player){
     /*
     Add a score to sort the moves depending on:
         - Sequences with other stone of the same color
@@ -291,11 +292,9 @@ void score_move(char* copie_board, Move *move, const char current_player){
         - Make capture
     */
     char opponent_player = (current_player == 'B')?'W':'B';
-    char **map = create_map(copie_board, move->col, move->row, current_player);
-    move->score = heuristic(copie_board, move, current_player, map);
+    move->score = heuristic(move, current_player, map);
     map[move->row][move->col] = opponent_player;
-    move->score += heuristic(copie_board, move, opponent_player, map);
-    free_map(map);
+    move->score += heuristic(move, opponent_player, map);
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
@@ -351,20 +350,24 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
     for (int i = 0; i < MAX_MOVES; i++) { // initialisation de score
         moves[i].score = 0;
     }
-    count = 0;
+	char **map = create_map(copie_board);
+	count = 0;
     for (int row = y1; row <= y2; ++row) {
         for (int col = x1; col <= x2; ++col) {
             int index = idx(col, row);
             if (copie_board[index] == 'X'){
                 moves[count].col = col;
                 moves[count].row = row;
-                score_move(copie_board, &moves[count], current_player);
-                count++;
-            }
+				map[row][col] = current_player;
+                score_move(map, &moves[count], current_player);
+				map[row][col] = '0';
+				count++;
+			}
         }
     }
-    qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
-    for (int i = 0; i<MAX_MOVES;i++) {
+    free_map(map);
+	qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
+	for (int i = 0; i<MAX_MOVES;i++) {
         print("score num[%d] = %d\n", i, moves[i].score);
     }
     *move_count = count;
