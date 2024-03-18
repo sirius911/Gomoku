@@ -7,7 +7,8 @@ import pickle
 
 class Move(ctypes.Structure):
             _fields_ = [("col", ctypes.c_int),
-                        ("row", ctypes.c_int)]
+                        ("row", ctypes.c_int),
+                        ("score", ctypes.c_int)]
             
 class GameState(ctypes.Structure):
             _fields_ = [("board", ctypes.POINTER(ctypes.c_char)), # Un pointeur vers un tableau de char
@@ -133,12 +134,10 @@ class GomokuLogic:
         if captured_moves:
             move1 = Move(captured_moves[0].col, captured_moves[0].row)
             move2 = Move(captured_moves[1].col, captured_moves[1].row)
-
-            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
-            
             del self.board[(move1.col,move1.row)]
             del self.board[(move2.col,move2.row)]
             self.captures[player] += 2
+            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
 
         return (move1, move2)
     
