@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/18 18:02:50 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/18 18:47:40 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,9 +292,9 @@ void score_move(char** map, Move *move, const char current_player){
         - Make capture
     */
     char opponent_player = (current_player == 'B')?'W':'B';
-    move->score = heuristic(move, current_player, map);
+    move->score = heuristic(move, current_player, map) * 10 + 5;
     map[move->row][move->col] = opponent_player;
-    move->score += heuristic(move, opponent_player, map);
+    move->score += heuristic(move, opponent_player, map) * 10;
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
