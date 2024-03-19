@@ -45,7 +45,7 @@ build: $(SRCS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRCS)
 
 opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
-opti: $(TARGET)
+opti:  clean $(TARGET)
 
 run: $(TARGET)
 	-python3 srcs/Gomoku.py
@@ -65,4 +65,4 @@ run_valgrind:
 		echo "No leaks of libgame.so "; \
 	fi
 
-.PHONY: all build clean re
+.PHONY: all build clean re opti

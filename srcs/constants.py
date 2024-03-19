@@ -17,4 +17,6 @@ WIN_GAME = {
     "alert_type": "info"
 }
 
+INTERRUPTED = {}
+
 PATH_LIB = "lib"
