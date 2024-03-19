@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/18 18:01:47 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/19 11:22:34 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int heuristic(Move *move, const char current_player, char **map){
 	 * This function return a score depending on:
 	 * Sequences this move can create or continue
 	*/
-	int best_sequence = 1;
+	int best_sequence = 0;
 	// print("Coordonnees = col : %d, row : %d\n", move->col, move->row);
 	// for (int i = 0; i < SIZE; i++){
 	// 	for (int j = 0; map[i][j]; j++) {
@@ -37,6 +37,8 @@ int heuristic(Move *move, const char current_player, char **map){
 		sequence++;
 		col++;
 	}
+	if (sequence >= 5)
+		return sequence;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
@@ -51,6 +53,8 @@ int heuristic(Move *move, const char current_player, char **map){
 		sequence++;
 		row++;
 	}
+	if (sequence >= 5)
+		return sequence;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
@@ -70,6 +74,8 @@ int heuristic(Move *move, const char current_player, char **map){
 		row++;
 		col++;
 	}
+	if (sequence >= 5)
+		return sequence;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
@@ -89,6 +95,8 @@ int heuristic(Move *move, const char current_player, char **map){
 		row++;
 		col--;
 	}
+	if (sequence >= 5)
+		return sequence;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 

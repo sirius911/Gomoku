@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/18 18:01:57 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/19 11:30:35 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-void score_move(char **map, Move *move, const char current_player);
+bool score_move(char **map, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 

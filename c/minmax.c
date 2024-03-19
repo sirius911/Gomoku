@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/18 18:47:40 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/19 18:16:48 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,7 +284,7 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-void score_move(char** map, Move *move, const char current_player){
+bool score_move(char** map, Move *move, const char current_player){
     /*
     Add a score to sort the moves depending on:
         - Sequences with other stone of the same color
@@ -292,9 +292,19 @@ void score_move(char** map, Move *move, const char current_player){
         - Make capture
     */
     char opponent_player = (current_player == 'B')?'W':'B';
-    move->score = heuristic(move, current_player, map) * 10 + 5;
+	move->score = heuristic(move, current_player, map) * 10 + 5;
+	if (move->score == 55) {
+		move->score = 200;
+		return true;
+	}
     map[move->row][move->col] = opponent_player;
-    move->score += heuristic(move, opponent_player, map) * 10;
+	int score = 0 ;
+    if ((score = heuristic(move, opponent_player, map) * 10) == 50) {
+		move->score = 200;
+		return true;
+	}
+	move->score += score;
+	return false;
 }
 
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
@@ -359,12 +369,17 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
                 moves[count].col = col;
                 moves[count].row = row;
 				map[row][col] = current_player;
-                score_move(map, &moves[count], current_player);
+                if (score_move(map, &moves[count], current_player)) {
+					map[row][col] = '0';
+					count++;
+					goto fin_boucles;
+				}
 				map[row][col] = '0';
 				count++;
 			}
         }
     }
+	fin_boucles:
     free_map(map);
 	qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
 	for (int i = 0; i<MAX_MOVES;i++) {
