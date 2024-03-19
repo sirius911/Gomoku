@@ -170,7 +170,7 @@ def init_game(filepath, ia, threads):
     return game_logic
 
 def main(filepath, ia, threads, graphic, log_file):
-    if graph:
+    if graphic:
         create_log(filepath, ia)
     game_logic = init_game(filepath, ia, threads)
     print(f"{''if filepath is None else filepath}Partie en cours")
