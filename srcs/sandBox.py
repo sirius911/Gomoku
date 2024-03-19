@@ -169,7 +169,7 @@ def init_game(filepath, ia, threads):
     game_logic.threads = threads
     return game_logic
 
-def main(filepath, ia, threads, graph, log_file):
+def main(filepath, ia, threads, graphic, log_file):
     if graph:
         create_log(filepath, ia)
     game_logic = init_game(filepath, ia, threads)
@@ -179,7 +179,7 @@ def main(filepath, ia, threads, graph, log_file):
         print("Interrompue")
     else:
         print("Terminée")
-    if graph:
+    if graphic:
         coups = compter_points_par_bloc(filepath, ia)
         graph(tab_time, coups, nb_coup, threads, filepath)
 
