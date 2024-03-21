@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Définir le répertoire de base pour la recherche des fichiers .c
 REPERTOIRE="c/"
 
-# Se déplacer dans la branche contenant les fichiers à comparer initialement
-# Ici, on assume que vous voulez partir de la branche 'main'
 git checkout main
 
 # Lister tous les fichiers .c dans le répertoire spécifié
