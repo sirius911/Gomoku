@@ -3,13 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/21 17:55:03 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/17 23:31:34 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "game.h"
 
 bool DEBUG = false;
 bool STAT = false;
@@ -244,16 +244,12 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
             best_move = moves[i];
             break;
         }
-    }
-    printf("%d threads crées\n", move_count);
-    for (int i = 0; i < move_count; i++) {
-        pthread_join(threads[i], NULL);
-
-        if (threadData[i].result.coup_gagnant || threadData[i].result.scoreDiff > best_score) {
-            best_score = threadData[i].result.scoreDiff;
+        if (result.scoreDiff > best_score) {
+            best_score = result.scoreDiff;
             best_move = moves[i];
             print("*=* Meilleur coup pour IA *=*\n");
         }
+        print("\n");
     }
     if (best_move.col != -1 && best_move.row != -1) {
         print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
