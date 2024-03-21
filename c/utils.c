@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/11 19:48:23 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/17 21:05:22 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,15 @@
 
 void print(const char *format, ...){
     if(DEBUG) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
+}
+
+void print_stat(const char *format, ...){
+    if(STAT) {
         va_list args;
         va_start(args, format);
         vprintf(format, args);
@@ -112,6 +121,17 @@ void print_sequences_board(char *board, const char *entete) {
     print(" %s", b5 ? "Winner\n":"\n");
     print("%sWhite [2]:%d - [3]:%d = [4]:%d\n",entete,w2,w3,w4);
     print(" %s", w5 ? "Winner\n":"\n");
+}
+
+void print_board(const char* board, const char current_player){
+	print("Current player = %c\n", current_player);
+	for (int i = 0; board[i]; i++)
+	{
+		if (i % SIZE == 0)
+			print("\n");
+		print("%c ", board[i]);
+	}
+	print("\n\n");
 }
 
 void free_moves(Move* moves) {

@@ -1,8 +1,10 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import messagebox
 from constants import *
 from dialogs import EndGameDialog, CustomDialog
 from game_logic import GomokuLogic
+from tkinter import filedialog
+from constants import VERSION
 
 class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20, top_margin = 50):
@@ -24,8 +26,6 @@ class GomokuGUI:
         self.captures_labels["black"].pack()
         self.captures_labels["white"].pack()
         self.end_game_dialog = None
-        self.draw_current_player_indicator()
-        self.update_captures_display(self.game_logic.captures)
 
         # Créer une barre de menu
         menu_bar = tk.Menu(self.master, tearoff=0)
@@ -43,6 +43,9 @@ class GomokuGUI:
         self.coups_menu = tk.Menu(menu_bar, tearoff=0)
         self.coups_menu.add_command(label="Undo (Ctrl+Z)", command=self.undo)
         self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+        self.edition = tk.BooleanVar()
+        self.edition.set(False)
+        self.coups_menu.add_checkbutton(label="Edition (Ctrl-E)", variable=self.edition, command=self.manual)
         
         # Créer un menu "IA"
         self.ia_black_var = tk.IntVar()
@@ -57,6 +60,9 @@ class GomokuGUI:
         ia_menu.add_radiobutton(label="Level 1", variable=self.ia_level_var, value=1, command=self.toggle_ia_level)
         ia_menu.add_radiobutton(label="Level 2", variable=self.ia_level_var, value=2, command=self.toggle_ia_level)
         ia_menu.add_radiobutton(label="Level 3", variable=self.ia_level_var, value=3, command=self.toggle_ia_level)
+        self.threads = tk.BooleanVar()
+        ia_menu.add_separator()
+        ia_menu.add_checkbutton(label="Threads", variable=self.threads, command=self.toggle_threads)
         
         #info
         self.debug = tk.BooleanVar()
@@ -83,10 +89,24 @@ class GomokuGUI:
         self.master.bind('<Control-z>', lambda event: self.undo())
         self.master.bind('<Control-c>', lambda event: self.quit_game())
         self.master.bind('<Control-s>', lambda event: self.save_game())
+        self.master.bind('<Control-e>', lambda event: self.switch_edition())
         self.master.bind('<h>', lambda event: self.help())
+        self.master.bind('<b>', lambda event: self.change_color('black'))
+        self.master.bind('<w>', lambda event: self.change_color('white')
+                         )
         # Créer et positionner le label du chronomètre
         self.timer_label = tk.Label(master, text="0.00s")
         self.timer_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
+
+        self.draw_current_player_indicator()
+        self.update_captures_display(self.game_logic.captures)
+
+        # Ajout du label pour afficher les coordonnées de la souris
+        self.mouse_coords_label = tk.Label(master, text="ici")
+        self.mouse_coords_label.place(relx=0.0, rely=1.0, x=10, y=-10, anchor="sw")
+
+        # Liez l'événement de mouvement de la souris sur le canvas à la fonction update_mouse_coords
+        self.canvas.bind("<Motion>", self.update_mouse_coords)
 
     @property
     def pixel_size(self):
@@ -99,25 +119,30 @@ class GomokuGUI:
 
     def on_canvas_click(self, event):
         x, y = self.convert_pixel_to_grid(event.x, event.y)
-        status = self.game_logic.play(x, y)
-        if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
-            if status == FORBIDDEN_MOVE:
-                CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
+        if not self.edition.get():
+            status = self.game_logic.play(x, y)
+            if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
+                if status == FORBIDDEN_MOVE:
+                    CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
+            else:
+                self.saved = False
+                self.draw_stones()
+                if status == WIN_GAME:
+                    win = self.game_logic.current_player
+                    if win == self.game_logic.ia:
+                        win += " (IA)"
+                    self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné !\nVoulez-vous rejouer ?", self.replay_game, self.quit_game)
+                else:
+                    # self.draw_stones()
+                    self.update_captures_display(self.game_logic.captures)
+                    self.game_logic.switch_player()
+                    self.draw_current_player_indicator()
+                    if self.is_IA_turn():
+                        self.ia_play()
         else:
+            self.game_logic.manual_play(x, y)
             self.saved = False
             self.draw_stones()
-            if status == WIN_GAME:
-                win = self.game_logic.current_player
-                if win == self.game_logic.ia:
-                    win += " (IA)"
-                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné !\nVoulez-vous rejouer ?", self.replay_game, self.quit_game)
-            else:
-                # self.draw_stones()
-                self.update_captures_display(self.game_logic.captures)
-                self.game_logic.switch_player()
-                self.draw_current_player_indicator()
-                if self.is_IA_turn():
-                    self.ia_play()
 
     def ia_play(self):
         status = CONTINUE_GAME
@@ -135,7 +160,7 @@ class GomokuGUI:
                 self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
 
     def is_IA_turn(self):
-        return (self.game_logic.IA_Turn())
+        return (self.game_logic.IA_Turn() and not self.edition.get())
 
     def draw_board(self):
         for i in range(self.size):
@@ -187,10 +212,13 @@ class GomokuGUI:
         # Déterminez la couleur du joueur actuel
         color = self.game_logic.current_player
 
-        # Dessinez le texte "Player: "
-        texte = "Player's Turn "
-        if self.is_IA_turn():
-            texte += "(IA)"
+        # Le texte "Player: "
+        if self.edition.get():
+            texte = "Edition for "
+        else:
+            texte = "Player's Turn "
+            if self.is_IA_turn():
+                texte += "(IA)"
         self.canvas.create_text(text_x, text_y, text=texte, anchor="w", tags="current_player_indicator")
 
         # Dessinez un cercle pour indiquer le joueur actuel
@@ -304,7 +332,7 @@ class GomokuGUI:
 
     def version(self):
         title = f"Gomoku {VERSION}"
-        message = f"{title}\n@ clorin@student.42.fr"
+        message = f"{title}\n @ clorin@student.42.fr \n @ thoberth@student.42.fr \n"
         CustomDialog(parent=self.master, title=title,message=message, alert_type='info')
 
     def update_title(self):
@@ -358,3 +386,29 @@ class GomokuGUI:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="normal")
         else:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+
+    def change_color(self, color):
+        if self.edition.get():
+            self.game_logic.current_player = color
+            self.draw_current_player_indicator()
+
+    def switch_edition(self):
+        self.edition.set(not self.edition.get())
+        self.manual()
+
+    def manual(self):
+        # print(f"self.edition = {self.edition.get()}")
+        # print(f"self.is_IA_turn = {self.is_IA_turn()}")
+        self.draw_current_player_indicator()
+        if not self.edition.get():
+            if self.is_IA_turn():
+                self.ia_play()
+
+    def update_mouse_coords(self, event):
+        # Convertissez les pixels en coordonnées de grille
+        grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
+        # Mettez à jour le label avec les coordonnées de la grille
+        self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
+
+    def toggle_threads(self):
+        self.game_logic.threads = (self.threads.get() == 1)

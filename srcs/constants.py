@@ -1,6 +1,6 @@
 # constants.py
 
-VERSION = "v2.8c"
+VERSION = "v3.1c"
 
 INVALID_MOVE = {}
 
@@ -16,5 +16,7 @@ WIN_GAME = {
     "message": "{} gagne la partie ! Félicitations.",
     "alert_type": "info"
 }
+
+INTERRUPTED = {}
 
 PATH_LIB = "lib"

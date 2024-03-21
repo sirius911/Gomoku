@@ -1,4 +1,3 @@
-# import os
 import platform
 import sys
 from constants import *
@@ -8,7 +7,8 @@ import pickle
 
 class Move(ctypes.Structure):
             _fields_ = [("col", ctypes.c_int),
-                        ("row", ctypes.c_int)]
+                        ("row", ctypes.c_int),
+                        ("score", ctypes.c_int)]
             
 class GameState(ctypes.Structure):
             _fields_ = [("board", ctypes.POINTER(ctypes.c_char)), # Un pointeur vers un tableau de char
@@ -40,9 +40,18 @@ class GomokuLogic:
         self.debug = debug
         self.ia_level = ia_level
         self.history = []
+        self.threads = False
+        self.stat = False
 
     def switch_player(self):
         self.current_player = self.opponent[self.current_player]
+
+    def manual_play(self, x, y):
+        if (0 <= x < self.size and 0 <= y < self.size):
+            if self.board.get((x, y), '') == self.current_player:
+                del self.board[x,y]
+            else:
+                self.board[(x, y)] = self.current_player
 
     def play(self, x, y):
 
@@ -57,6 +66,8 @@ class GomokuLogic:
         captured1, captured2 = self.check_capture(x, y, self.current_player)
         self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         
+        # self.sandBox()
+
         if self.check_win():
             return WIN_GAME
     
@@ -66,16 +77,21 @@ class GomokuLogic:
         return self.ia[self.current_player]
     
     def play_IA(self):
+        
         gameState = self.getGameState()
         self.libgame.analyse(gameState, self.debug)
-        self.libgame.play_IA.restype = Move
         start_time = time.time()
-        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        if self.threads:
+            self.libgame.play_IA_threads.restype = Move
+            best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
+        else:
+            self.libgame.play_IA.restype = Move
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
         end_time = time.time()
         play_time = end_time - start_time
         x, y = best_move.col,best_move.row
         if (x, y) == ( -1, -1):
-            print("x et y invalides")
+            print("Abandon prochain coup gagnant !!")       #TODO
             self.switch_player()
             return WIN_GAME, play_time
         
@@ -89,8 +105,12 @@ class GomokuLogic:
     
     def help_IA(self):
         gameState = self.getGameState()
-        self.libgame.play_IA.restype = Move
-        best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug)
+        if self.threads:
+            self.libgame.play_IA.restype = Move
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
+        else:
+            self.libgame.play_IA_threads.restype = Move
+            best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
         return best_move.col,best_move.row
     
     def check_win(self):
@@ -114,12 +134,10 @@ class GomokuLogic:
         if captured_moves:
             move1 = Move(captured_moves[0].col, captured_moves[0].row)
             move2 = Move(captured_moves[1].col, captured_moves[1].row)
-
-            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
-            
             del self.board[(move1.col,move1.row)]
             del self.board[(move2.col,move2.row)]
             self.captures[player] += 2
+            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
 
         return (move1, move2)
     
@@ -201,6 +219,13 @@ class GomokuLogic:
             if (captured1, captured2) != (None, None):
                 self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
                 self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
+                self.captures[player] -= 2
             return True
         else:
             return False
+        
+    def sandBox(self):
+        gameState = self.getGameState()
+        self.libgame.nb_coups.restype = ctypes.c_int
+        nb_coup = self.libgame.nb_coups(gameState)
+        print(f"Nombre de coups évalués = {nb_coup}")
