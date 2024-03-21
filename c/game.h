@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/19 11:30:35 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/19 21:38:51 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ void print(const char *format, ...);
 void print_stat(const char *format, ...);
 bool is_valid_position(int x, int y);
 int idx(int x, int y);
+void r_idx(int index, int *col, int *row);
 char adversaire(const char player);
 char get(const char *board, int x, int y);
 char *put(char *board, char c, int x, int y);
@@ -80,7 +81,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-bool score_move(char **map, Move *move, const char current_player);
+bool score_move(char *board, int index, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
@@ -88,7 +89,7 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
 int nb_coups(GameState *gameState);
 
 // Protoypes des fonctions dans heuristic.c
-int heuristic(Move *move, const char current_player, char **map);
+int heuristic(Move *move, const char current_player, char *board, int index);
 int compare_age(void const *a, void const *b);
 char **create_map(const char *copie_board);
 void free_map(char **map);

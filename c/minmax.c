@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/19 18:16:48 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/21 17:27:25 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,7 +284,7 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-bool score_move(char** map, Move *move, const char current_player){
+bool score_move(char* board, int index, Move *move, const char current_player){
     /*
     Add a score to sort the moves depending on:
         - Sequences with other stone of the same color
@@ -292,18 +292,18 @@ bool score_move(char** map, Move *move, const char current_player){
         - Make capture
     */
     char opponent_player = (current_player == 'B')?'W':'B';
-	move->score = heuristic(move, current_player, map) * 10 + 5;
+	move->score = heuristic(move, current_player, board, index) * 10 + 5;
 	if (move->score == 55) {
 		move->score = 200;
 		return true;
 	}
-    map[move->row][move->col] = opponent_player;
+    board[index] = opponent_player;
 	int score = 0 ;
-    if ((score = heuristic(move, opponent_player, map) * 10) == 50) {
-		move->score = 200;
-		return true;
+    if ((score = heuristic(move, opponent_player, board, index) * 10) == 50) {
+		move->score += 140;
 	}
-	move->score += score;
+	else
+		move->score += score;
 	return false;
 }
 
@@ -352,40 +352,37 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         return move;
     }
     // on recupere toutes les cases X
-    Move *moves = (Move*) malloc(MAX_MOVES * sizeof(Move));
+    Move *moves = (Move*) malloc(count * sizeof(Move));
     if (moves == NULL) {
         fprintf(stderr, "Allocation de mémoire échouée\n");
         return NULL;
     }
-    for (int i = 0; i < MAX_MOVES; i++) { // initialisation de score
+    for (int i = 0; i < count; i++) { // initialisation de score
         moves[i].score = 0;
     }
-	char **map = create_map(copie_board);
-	count = 0;
+	int count2 = 0;
     for (int row = y1; row <= y2; ++row) {
         for (int col = x1; col <= x2; ++col) {
             int index = idx(col, row);
             if (copie_board[index] == 'X'){
-                moves[count].col = col;
-                moves[count].row = row;
-				map[row][col] = current_player;
-                if (score_move(map, &moves[count], current_player)) {
-					map[row][col] = '0';
-					count++;
+                moves[count2].col = col;
+                moves[count2].row = row;
+				copie_board[index] = current_player;
+                if (score_move(copie_board, index, &moves[count2], current_player)) {
+					count2++;
 					goto fin_boucles;
 				}
-				map[row][col] = '0';
-				count++;
+				copie_board[index] = 'X';
+				count2++;
 			}
         }
     }
 	fin_boucles:
-    free_map(map);
-	qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
-	for (int i = 0; i<MAX_MOVES;i++) {
-        print("score num[%d] = %d\n", i, moves[i].score);
+	qsort(moves, (size_t)count2, sizeof(Move), compare_age);
+	for (int i = 0; i<count2;i++) {
+        print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
     }
-    *move_count = count;
+    *move_count = count2;
     free(copie_board);
     // printf("%d\n",count);
     // printf("\n");

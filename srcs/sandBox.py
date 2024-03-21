@@ -56,7 +56,7 @@ def create_log(fileName,ia):
     with open(nom_fichier, 'w') as fichier_log:
         subprocess.run(commande, shell=True, stdout=fichier_log, stderr=subprocess.STDOUT)
     print("Terminé.", flush=True)
-    time.sleep(1)
+    time.sleep(5)
 
 def compter_points_par_bloc(fileName, ia):
     if fileName is None:
@@ -140,7 +140,7 @@ def play_game(game_logic, filepath, log_file):
          print(f"\nWinner : {Fore.GREEN}{game_logic.current_player}{Style.RESET_ALL}")
     elif result == INTERRUPTED:
         return None, None, result
-    time.sleep(1)
+    time.sleep(5)
     moyenne = temps_total/nb_coup
     play_time = end_time - start_time
     if log_file is not None:

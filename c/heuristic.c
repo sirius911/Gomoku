@@ -6,13 +6,13 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/19 11:22:34 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/21 12:14:07 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
 
-int heuristic(Move *move, const char current_player, char **map){
+int heuristic(Move *move, const char current_player, char *board, int index){
 	/**
 	 * This function return a score depending on:
 	 * Sequences this move can create or continue
@@ -26,16 +26,18 @@ int heuristic(Move *move, const char current_player, char **map){
 	// 	print("\n");
 	// }
 
-	// HORIZONTALLY
 	int col = move->col, row = move->row, sequence = 0;
-	while (col >= 0 && map[row][col] == current_player) {
+	
+	// HORIZONTALLY
+	while ((index >= (row * SIZE)) && board[index] == current_player) {
 		sequence++;
-		col--;
+		index--;
 	}
-	col = move->col + 1;
-	while (col < SIZE && map[row][col] == current_player) {
+	index = (row * SIZE) + col + 1;
+	while ((index < ((row + 1) * SIZE)) && board[index] == current_player)
+	{
 		sequence++;
-		col++;
+		index++;
 	}
 	if (sequence >= 5)
 		return sequence;
@@ -43,15 +45,15 @@ int heuristic(Move *move, const char current_player, char **map){
 		best_sequence = sequence;
 
 	// VERTICALLY
-	col = move->col, row = move->row, sequence = 0;
-	while (row >= 0 && map[row][col] == current_player) {
+	sequence = 0, index = idx(move->col, move->row);
+	while (index >= 0 && board[index] == current_player) {
 		sequence++;
-		row--;
+		index -= SIZE;
 	}
-	row = move->row + 1;
-	while (row < SIZE && map[row][col] == current_player) {
+	index = (row + 1) * SIZE + col;
+	while ((index < (SIZE * SIZE)) && board[index] == current_player) {
 		sequence++;
-		row++;
+		index += SIZE;
 	}
 	if (sequence >= 5)
 		return sequence;
@@ -59,20 +61,21 @@ int heuristic(Move *move, const char current_player, char **map){
 		best_sequence = sequence;
 
 	// DIAGONALLY (from top left to bottom right)
-	col = move->col, row = move->row, sequence = 0;
-	while (row >= 0 && col >= 0 && map[row][col] == current_player)
+	sequence = 0, index = idx(move->col, move->row);
+	while ((index >= 0) && (index >= (row * SIZE)) && board[index] == current_player)
 	{
 		sequence++;
+		index = (index - SIZE) - 1;
 		row--;
-		col--;
 	}
 	row = move->row + 1;
 	col = move->col + 1;
-	while (row < SIZE && col < SIZE && map[row][col] == current_player)
+	index = idx(col, row);
+	while ((index < (SIZE * SIZE)) && (index < ((row + 1) * SIZE)) && board[index] == current_player)
 	{
 		sequence++;
 		row++;
-		col++;
+		index = (index + SIZE) + 1;
 	}
 	if (sequence >= 5)
 		return sequence;
@@ -80,23 +83,24 @@ int heuristic(Move *move, const char current_player, char **map){
 		best_sequence = sequence;
 
 	// DIAGONALLY (from top right to bottom left)
-	col = move->col, row = move->row, sequence = 0;
-	while (row >= 0 && col < SIZE && map[row][col] == current_player)
+	col = move->col, row = move->row, sequence = 0, index = idx(move->col, move->row);
+	while (row >= 0 && col < SIZE && board[index] == current_player)
 	{
 		sequence++;
 		row--;
 		col++;
+		index = (index - SIZE) + 1;
 	}
 	row = move->row + 1;
 	col = move->col - 1;
-	while (row < SIZE && col >= 0 && map[row][col] == current_player)
+	index = idx(col, row);
+	while (row < SIZE && col >= 0 && board[index] == current_player)
 	{
 		sequence++;
 		row++;
 		col--;
+		index = (index + SIZE) - 1;
 	}
-	if (sequence >= 5)
-		return sequence;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
