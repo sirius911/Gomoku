@@ -106,11 +106,11 @@ class GomokuLogic:
     def help_IA(self):
         gameState = self.getGameState()
         if self.threads:
-            self.libgame.play_IA.restype = Move
-            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
-        else:
             self.libgame.play_IA_threads.restype = Move
             best_move = self.libgame.play_IA_threads(gameState, self.ia_level, self.debug)
+        else:
+            self.libgame.play_IA.restype = Move
+            best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
         return best_move.col,best_move.row
     
     def check_win(self):
