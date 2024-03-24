@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/21 12:14:07 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/22 16:10:01 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,48 +26,69 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	// 	print("\n");
 	// }
 
+	char opponent_player = (current_player=='B')?'W':'B';
 	int col = move->col, row = move->row, sequence = 0;
-	
+	int extrem1 = 0, extrem2 = 0;
 	// HORIZONTALLY
 	while ((index >= (row * SIZE)) && board[index] == current_player) {
 		sequence++;
 		index--;
 	}
+	if ((index >= (row * SIZE)) && board[index] != opponent_player)
+		extrem1 = 1;
 	index = (row * SIZE) + col + 1;
-	while ((index < ((row + 1) * SIZE)) && board[index] == current_player)
-	{
+	while ((index < ((row + 1) * SIZE)) && board[index] == current_player) {
 		sequence++;
 		index++;
 	}
-	if (sequence >= 5)
-		return sequence;
-	if (sequence > best_sequence)
-		best_sequence = sequence;
+	sequence *= 2;
+	if (sequence >= 10)
+		return 10;
+	if ((index < ((row + 1) * SIZE)) && board[index] != opponent_player)
+		extrem2 = 1;
+	if (extrem1 && extrem2)
+		sequence += 1;
+	else if (extrem1 == 0 && extrem2 == 0)
+		sequence = 0;
+	best_sequence = sequence;
 
 	// VERTICALLY
 	sequence = 0, index = idx(move->col, move->row);
+	extrem1 = 0, extrem2 = 0;
 	while (index >= 0 && board[index] == current_player) {
 		sequence++;
 		index -= SIZE;
 	}
+	if (index >= 0 && board[index] != opponent_player)
+		extrem1 = 1;
 	index = (row + 1) * SIZE + col;
 	while ((index < (SIZE * SIZE)) && board[index] == current_player) {
 		sequence++;
 		index += SIZE;
 	}
-	if (sequence >= 5)
-		return sequence;
+	sequence *= 2;
+	if (sequence >= 10)
+		return 10;
+	if ((index < (SIZE * SIZE)) && board[index] != opponent_player)
+		extrem2 = 1;
+	if (extrem1 && extrem2)
+		sequence += 1;
+	else if (extrem1 == 0 && extrem2 == 0)
+		sequence = 0;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
 	// DIAGONALLY (from top left to bottom right)
 	sequence = 0, index = idx(move->col, move->row);
+	extrem1 = 0, extrem2 = 0;
 	while ((index >= 0) && (index >= (row * SIZE)) && board[index] == current_player)
 	{
 		sequence++;
 		index = (index - SIZE) - 1;
 		row--;
 	}
+	if ((index >= 0) && (index >= (row * SIZE)) && board[index] != opponent_player)
+		extrem1 = 1;
 	row = move->row + 1;
 	col = move->col + 1;
 	index = idx(col, row);
@@ -77,12 +98,20 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		row++;
 		index = (index + SIZE) + 1;
 	}
-	if (sequence >= 5)
-		return sequence;
+	sequence *= 2;
+	if (sequence >= 10)
+		return 10;
+	if ((index < (SIZE * SIZE)) && (index < ((row + 1) * SIZE)) && board[index] != opponent_player)
+		extrem2 = 1;
+	if (extrem1 && extrem2)
+		sequence += 1;
+	else if (extrem1 == 0 && extrem2 == 0)
+		sequence = 0;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
 	// DIAGONALLY (from top right to bottom left)
+	extrem1 = 0, extrem2 = 0;
 	col = move->col, row = move->row, sequence = 0, index = idx(move->col, move->row);
 	while (row >= 0 && col < SIZE && board[index] == current_player)
 	{
@@ -91,6 +120,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		col++;
 		index = (index - SIZE) + 1;
 	}
+	if (row >= 0 && col < SIZE && board[index] != opponent_player)
+		extrem1 = 1;
 	row = move->row + 1;
 	col = move->col - 1;
 	index = idx(col, row);
@@ -101,6 +132,15 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		col--;
 		index = (index + SIZE) - 1;
 	}
+	sequence *= 2;
+	if (sequence >= 10)
+		return 10;
+	if (row < SIZE && col >= 0 && board[index] != opponent_player)
+		extrem2 = 1;
+	if (extrem1 && extrem2)
+		sequence += 1;
+	else if (extrem1 == 0 && extrem2 == 0)
+		sequence = 0;
 	if (sequence > best_sequence)
 		best_sequence = sequence;
 
@@ -116,6 +156,59 @@ int compare_age(const void *a, const void *b)
 	// Compare les scores
 	return (moveB->score - moveA->score);
 }
+
+bool check_capture_score(char *board, Move *move, char current_player, char opponent_player) {
+	int col = move->col, row = move->row, index = idx(col, row);
+
+	// VERTICALLY
+	if (((index - 3) >= (row * SIZE)) && board[index - 3] == current_player) {
+		if (board[index - 2] == opponent_player && board[index - 1] == opponent_player) {
+			return true;
+		}
+	}
+	if (((index + 3) < ((row + 1) * SIZE)) && board[index + 3] == current_player) {
+		if (board[index + 2] == opponent_player && board[index + 1] == opponent_player) {
+			return true;
+		}
+	}
+
+	// HORIZONTALLY
+	if (((index - (3 * SIZE)) >= 0) && board[index - (3 * SIZE)] == current_player) {
+		if (board[index - (2 * SIZE)] == opponent_player && board[index - SIZE] == opponent_player) {
+			return true;
+		}
+	}
+	if (((index + (3 * SIZE)) < (SIZE * SIZE)) && board[index + (3 * SIZE)] == current_player) {
+		if (board[index + (2 * SIZE)] == opponent_player && board[index + SIZE] == opponent_player) {
+			return true;
+		}
+	}
+
+	// DIAGONALLY
+	if ((col - 3) >= 0 && (row - 3) >= 0 && board[index - (3 * SIZE) - 3] == current_player) {
+		if (board[index - (2 * SIZE) - 2] == opponent_player && board[index - SIZE - 1] == opponent_player) {
+			return true;
+		}
+	}
+	if ((col + 3) < SIZE && (row + 3) < SIZE && board[index + (3 * SIZE) + 3] == current_player) {
+		if (board[index + (2 * SIZE) + 2] == opponent_player && board[index + SIZE + 1] == opponent_player) {
+			return true;
+		}
+	}
+
+	if ((col + 3) < SIZE && (row - 3) >= 0 && board[index - (3 * SIZE) + 3] == current_player) {
+		if (board[index - (2 * SIZE) + 2] == opponent_player && board[index - SIZE + 1] == opponent_player) {
+			return true;
+		}
+	}
+	if ((col - 3) >= 0 && (row + 3) < SIZE && board[index + (3 * SIZE) - 3] == current_player) {
+		if (board[index + (2 * SIZE) - 2] == opponent_player && board[index + SIZE - 1] == opponent_player) {
+			return true;
+		}
+	}
+	return false;
+}
+
 
 char** create_map(const char* copie_board){
 	char **map = (char**)malloc(SIZE * sizeof(char *));

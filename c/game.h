@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/19 21:38:51 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/22 11:50:04 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,15 +81,16 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-bool score_move(char *board, int index, Move *move, const char current_player);
+bool score_move(GameState* gameState, char *board, int index, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
-Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
+Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
 
 // Protoypes des fonctions dans heuristic.c
 int heuristic(Move *move, const char current_player, char *board, int index);
+bool check_capture_score(char *board, Move *move, char current_player, char opponent_player);
 int compare_age(void const *a, void const *b);
 char **create_map(const char *copie_board);
 void free_map(char **map);
