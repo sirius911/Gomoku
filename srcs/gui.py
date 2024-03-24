@@ -44,7 +44,10 @@ class GomokuGUI:
         self.edition = tk.BooleanVar()
         self.edition.set(False)
         self.coups_menu.add_checkbutton(label="Edition (Ctrl-E)", variable=self.edition, command=self.manual)
-        
+        self.coups_menu.add_separator()
+        self.print_value = tk.BooleanVar()
+        self.print_value.set(False)
+        self.coups_menu.add_checkbutton(label="Affiche Valeur Coup (Ctrl-V)", variable=self.print_value)
         # Créer un menu "IA"
         self.ia_black_var = tk.IntVar()
         self.ia_white_var = tk.IntVar()
@@ -88,6 +91,7 @@ class GomokuGUI:
         self.master.bind('<Control-c>', lambda event: self.quit_game())
         self.master.bind('<Control-s>', lambda event: self.save_game())
         self.master.bind('<Control-e>', lambda event: self.switch_edition())
+        self.master.bind('<Control-v>', lambda event: self.switch_print_value())
         self.master.bind('<h>', lambda event: self.help())
         self.master.bind('<b>', lambda event: self.change_color('black'))
         self.master.bind('<w>', lambda event: self.change_color('white')
@@ -118,6 +122,7 @@ class GomokuGUI:
     def on_canvas_click(self, event):
         x, y = self.convert_pixel_to_grid(event.x, event.y)
         if not self.edition.get():
+            self.game_logic.value_coup(x,y)
             status = self.game_logic.play(x, y)
             if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
                 if status == FORBIDDEN_MOVE:
@@ -394,9 +399,10 @@ class GomokuGUI:
         self.edition.set(not self.edition.get())
         self.manual()
 
+    def switch_print_value(self):
+        self.print_value.set(not self.print_value.get())
+
     def manual(self):
-        # print(f"self.edition = {self.edition.get()}")
-        # print(f"self.is_IA_turn = {self.is_IA_turn()}")
         self.draw_current_player_indicator()
         if not self.edition.get():
             if self.is_IA_turn():
@@ -407,6 +413,25 @@ class GomokuGUI:
         grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
         # Mettez à jour le label avec les coordonnées de la grille
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
+        if self.print_value.get():
+            value = self.game_logic.value_coup(grid_x, grid_y)
+            if value == -1:
+                self.show_tooltip(f"Coup Gagnant", event.x_root, event.y_root)
+            else:
+                self.show_tooltip(f"Valeur: {value}", event.x_root, event.y_root)
+        else:
+            # Détruire la bulle si elle existe et l'option n'est pas activée
+            if hasattr(self, 'tooltip_window'):
+                self.tooltip_window.destroy()
+
+    def show_tooltip(self, text, x, y):
+        if hasattr(self, 'tooltip_window'):
+            self.tooltip_window.destroy()
+        self.tooltip_window = tk.Toplevel(self.master)
+        self.tooltip_window.wm_overrideredirect(True)
+        self.tooltip_window.wm_geometry(f"+{x+20}+{y+20}")
+        label = tk.Label(self.tooltip_window, text=text, background="#ffffe0", relief=tk.SOLID, borderwidth=1, font=("tahoma", "8", "normal"))
+        label.pack()
 
     def toggle_threads(self):
         self.game_logic.threads = (self.threads.get() == 1)

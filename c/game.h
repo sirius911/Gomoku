@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/17 23:29:30 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 12:17:22 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,10 @@ bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
 
 // Prototypes des fonctions ai_logic
+void    free_gameState(GameState *game);
+int _evaluate_player(const GameState *gameState, char player);
+int _evaluate_opponent(const GameState *gameState, char opponent);
+GameState *apply_move(const GameState *original_gameState, int x, int y);
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
@@ -86,6 +90,7 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
+int value_coup(GameState *gameState, int currentMoveX, int currentMoveY);
 
 // Protoypes des fonctions dans heuristic.c
 int heuristic(const char *copie_board, Move *move, const char current_player, char **map);
