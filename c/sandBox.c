@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 10:48:54 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 13:01:36 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 14:01:25 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int nb_coups(GameState *gameState){
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
 
-    Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
+    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
     free(moves);
     return move_count;
 }

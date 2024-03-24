@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 12:17:22 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 14:01:08 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ void print(const char *format, ...);
 void print_stat(const char *format, ...);
 bool is_valid_position(int x, int y);
 int idx(int x, int y);
+void r_idx(int index, int *col, int *row);
 char adversaire(const char player);
 char get(const char *board, int x, int y);
 char *put(char *board, char c, int x, int y);
@@ -84,18 +85,19 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
-void score_move(char *copie_board, Move *move, const char current_player);
+bool score_move(GameState* gameState, char *board, int index, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
-Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
+Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
 int value_coup(GameState *gameState, int currentMoveX, int currentMoveY);
 
 // Protoypes des fonctions dans heuristic.c
-int heuristic(const char *copie_board, Move *move, const char current_player, char **map);
+int heuristic(Move *move, const char current_player, char *board, int index);
+bool check_capture_score(char *board, Move *move, char current_player, char opponent_player);
 int compare_age(void const *a, void const *b);
-char **create_map(const char *copie_board, int col, int row, const char current_player);
+char **create_map(const char *copie_board);
 void free_map(char **map);
 
 #endif // GAME_H

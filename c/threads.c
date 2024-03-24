@@ -40,7 +40,7 @@ Move play_IA_threads(GameState *gameState, int depth, bool debug) {
     int move_count;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-    Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
+    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
 
     pthread_t threads[move_count];
     ThreadData threadData[move_count];

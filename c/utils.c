@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/17 21:05:22 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/19 20:57:32 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,11 @@ bool is_valid_position(int x, int y) {
 // Convertit les coordonnées en index dans le tableau
 int idx(int x, int y) {
     return y * SIZE + x;
+}
+
+void r_idx(int index, int *col, int* row) {
+	*col = index % SIZE;
+	*row = abs(index / SIZE);
 }
 
 char adversaire(const char player){

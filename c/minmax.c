@@ -5,7 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Updated: 2024/03/17 23:31:34 by thoberth         ###   ########.fr       */
+/*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
+/*   Updated: 2024/03/22 17:06:50 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +143,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 
         int topLeftX, topLeftY, bottomRightX, bottomRightY;
         findBoxElements(child_gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-        Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
+        Move *moves = proximate_moves(child_gameState, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
             EvalResult result;
             print("\t+ Si %c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
@@ -183,7 +184,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
         
         int topLeftX, topLeftY, bottomRightX, bottomRightY;
         findBoxElements(child_gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-        Move *moves = proximate_moves(child_gameState->board, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
+        Move *moves = proximate_moves(child_gameState, &move_count, opponent, topLeftX,topLeftY,bottomRightX,bottomRightY);
         for (int i = 0; i < move_count; i++) {
            print("\t\t-%c(%d,%d)\n",opponent,moves[i].col, moves[i].row);
            EvalResult result = minmax(child_gameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, maxDepth);
@@ -228,7 +229,7 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
     int move_count;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-    Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
+    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
     print_stat("\n#\n");
     for (int i = 0; i < move_count; i++) {
         EvalResult result;
@@ -268,7 +269,7 @@ void analyse(GameState *gameState, bool debug) {
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     if (topLeftX < SIZE && topLeftY < SIZE) {
         int move_count;
-        Move *moves = proximate_moves(gameState->board, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
+        Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
         
         print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
         print_sequences_board(gameState->board, "");
@@ -283,22 +284,40 @@ void analyse(GameState *gameState, bool debug) {
     print("Capture pour Black:%d, pour White:%d\n", gameState->captures[0], gameState->captures[1]);
 }
 
-void score_move(char* copie_board, Move *move, const char current_player){
+bool score_move(GameState *gameState, char *board, int index, Move *move, const char current_player){
     /*
     Add a score to sort the moves depending on:
         - Sequences with other stone of the same color
         - stopping an opponent sequence
         - Make capture
     */
-    char opponent_player = (current_player == 'B')?'W':'B';
-    char **map = create_map(copie_board, move->col, move->row, current_player);
-    move->score = heuristic(copie_board, move, current_player, map);
-    map[move->row][move->col] = opponent_player;
-    move->score += heuristic(copie_board, move, opponent_player, map);
-    free_map(map);
+	char opponent_player = (current_player == 'B')?'W':'B';
+	int num_player = (current_player == 'B') ? 0 : 1;
+	move->score = heuristic(move, current_player, board, index) * 10 + 5;
+	if (move->score == 105) {
+		move->score = 500;
+		return true;
+	}
+    board[index] = opponent_player;
+	int score = heuristic(move, opponent_player, board, index) * 10;
+	if (score == 100) {
+		move->score = 300;
+	}
+	else
+		move->score += score;
+	board[index] = current_player;
+	if (check_capture_score(board, move, current_player, opponent_player)) {
+		if (gameState->captures[num_player] == 8)
+			move->score += 500;
+		else if (gameState->captures[num_player] == 6)
+			move->score += 90;
+		else
+			move->score += 70;
+	}
+	return false;
 }
 
-Move* proximate_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
+Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2){
     /*  XXX
         XBX
         XXX
@@ -309,7 +328,7 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         fprintf(stderr, "Allocation de mémoire échouée\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(copie_board, board); // Copie l'original dans la nouvelle copie
+    strcpy(copie_board, gameState->board); // Copie l'original dans la nouvelle copie
     int directions[8][2] = {
         {-1, -1}, {0, -1}, {+1, -1},
         {-1, 0},           {+1, 0},
@@ -325,7 +344,7 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
                     int dy = directions[i][1];
                     if (is_valid_position(col + dx, row + dy)) {
                         int index2 = idx(col + dx, row + dy);
-                        if (copie_board[index2] == '0' && !check_double_three(board, col+dx, row+dy, current_player)){
+                        if (copie_board[index2] == '0' && !check_double_three(gameState->board, col+dx, row+dy, current_player)){
                             copie_board[index2] = 'X' ;
                             count++;
                         }
@@ -343,34 +362,38 @@ Move* proximate_moves(char *board, int *move_count, const char current_player, i
         return move;
     }
     // on recupere toutes les cases X
-    Move *moves = (Move*) malloc(MAX_MOVES * sizeof(Move));
+    Move *moves = (Move*) malloc(count * sizeof(Move));
     if (moves == NULL) {
         fprintf(stderr, "Allocation de mémoire échouée\n");
         return NULL;
     }
-    for (int i = 0; i < MAX_MOVES; i++) { // initialisation de score
+    for (int i = 0; i < count; i++) { // initialisation de score
         moves[i].score = 0;
     }
-    count = 0;
+	int count2 = 0;
     for (int row = y1; row <= y2; ++row) {
         for (int col = x1; col <= x2; ++col) {
             int index = idx(col, row);
             if (copie_board[index] == 'X'){
-                moves[count].col = col;
-                moves[count].row = row;
-                score_move(copie_board, &moves[count], current_player);
-                count++;
-            }
+                moves[count2].col = col;
+                moves[count2].row = row;
+				copie_board[index] = current_player;
+                if (score_move(gameState, copie_board, index, &moves[count2], current_player)) {
+					count2++;
+					goto fin_boucles;
+				}
+				copie_board[index] = 'X';
+				count2++;
+			}
         }
     }
-    qsort(moves, (size_t)MAX_MOVES, sizeof(Move), compare_age);
-    for (int i = 0; i<MAX_MOVES;i++) {
-        print("score num[%d] = %d\n", i, moves[i].score);
+	fin_boucles:
+	qsort(moves, (size_t)count, sizeof(Move), compare_age);
+	for (int i = 0; i<count2;i++) {
+        print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
     }
-    *move_count = count;
+    *move_count = count2;
     free(copie_board);
-    // printf("%d\n",count);
-    // printf("\n");
     return moves;
 }
 
