@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 15:46:13 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 17:46:29 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #define MAX_MOVES (SIZE * SIZE)
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
+#define WIN_MOVE -1
 
 extern bool DEBUG;  
 extern bool STAT;

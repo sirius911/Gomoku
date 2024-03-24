@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/24 15:58:16 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 17:46:51 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,24 +297,29 @@ bool score_move(GameState *gameState, char *board, int index, Move *move, const 
     */
 	char opponent_player = (current_player == 'B')?'W':'B';
 	int num_player = (current_player == 'B') ? 0 : 1;
-	move->score = heuristic(move, current_player, board, index) * 10 + 5;
-	if (move->score == 105) {
-		move->score = 500;
+    print("coordonees = %d %d, ", move->col, move->row);
+    int score = heuristic(move, current_player, board, index);
+	if (score == WIN_MOVE){
+		move->score = 10000;
 		return true;
-	}
+    }
+    else
+        move->score = score + 50;
+    print("coup joueur = %d, ", move->score);
     board[index] = opponent_player;
-	int score = heuristic(move, opponent_player, board, index) * 10;
-	if (score == 100) {
-		move->score = 300;
+	score = heuristic(move, opponent_player, board, index);
+	if (score == WIN_MOVE) {
+		move->score = 5000;
 	}
 	else
 		move->score += score;
 	board[index] = current_player;
+    print("coup adversaire = %d\n", score);
 	if (check_capture_score(board, move, current_player, opponent_player)) {
 		if (gameState->captures[num_player] == 8)
-			move->score += 500;
+			move->score = 10000;
 		else if (gameState->captures[num_player] == 6)
-			move->score += 90;
+			move->score += 100;
 		else
 			move->score += 70;
 	}
