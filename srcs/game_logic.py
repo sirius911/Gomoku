@@ -40,6 +40,7 @@ class GomokuLogic:
         self.debug = debug
         self.ia_level = ia_level
         self.history = []
+        self.history_index = -1  # Indice du coup actuel dans l'historique
         self.threads = False
         self.stat = False
 
@@ -64,8 +65,9 @@ class GomokuLogic:
             del self.board[x,y]
             return FORBIDDEN_MOVE
         captured1, captured2 = self.check_capture(x, y, self.current_player)
-        self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
-        
+        self.record_move(x, y, captured1, captured2)
+        # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
+        # self.history_index += 1
         # self.sandBox()
 
         if self.check_win():
@@ -97,7 +99,9 @@ class GomokuLogic:
         
         self.board[(x, y)] = self.current_player
         captured1, captured2 = self.check_capture(x, y, self.current_player)
-        self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
+        self.record_move(x, y, captured1, captured2)
+        # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
+        # self.history_index += 1
         if self.check_win():
             return WIN_GAME, play_time
         self.switch_player()
@@ -181,7 +185,9 @@ class GomokuLogic:
                 'ia_black':self.ia['black'],
                 'ia_white':self.ia['white'],
                 'path':path,
-                'ia_level':self.ia_level
+                'ia_level':self.ia_level,
+                'threads':self.threads,
+                'history':self.history,
             }, save_file)
 
     def load(self, path):
@@ -195,14 +201,30 @@ class GomokuLogic:
                 self.captures = data['captures']
                 self.ia = {"black":data['ia_black'], "white":data['ia_white']}
                 self.ia_level = data['ia_level']
+                self.threads = data['threads']
+                self.history = data['history']
+                self.history_index = len(self.history) - 1  
                 return True
         except Exception as e:
             print(f"Erreur (bad file): {e}")
             return False
         
+    def record_move(self, x, y, captured1, captured2):
+        new_move = {'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)}
+        # Vérifie si on est à la fin de l'historique
+        if self.history_index < len(self.history) - 1:
+            # Si non, efface les mouvements qui sont "en avant" dans l'historique
+            self.history = self.history[:self.history_index + 1]
+        # Ajoute le nouveau mouvement à l'historique
+        self.history.append(new_move)
+        # Met à jour l'indice pour qu'il pointe toujours sur le dernier élément
+        self.history_index = len(self.history) - 1
+
+        
     def undo_move(self):
-        if self.history:
-            last_move = self.history.pop()  # Récupère le dernier coup joué
+        if self.history_index >= 0:
+            last_move = self.history[self.history_index]
+            self.history_index -= 1  # Décrémentez l'indice au lieu de supprimer l'élément
             position = last_move['position']
             player = last_move['player']
             self.captures = last_move['captures']
@@ -224,6 +246,25 @@ class GomokuLogic:
             return True
         else:
             return False
+        
+    def redo_move(self):
+        if self.history_index < len(self.history) - 1:
+            self.history_index += 1
+            next_move = self.history[self.history_index]
+            position = next_move['position']
+            player = next_move['player']
+            # Appliquez le coup suivant. Assurez-vous que la logique ici correspond à "refaire" le coup correctement
+            self.board[position] = player
+            self.current_player = self.opponent[player]  # Changez le joueur
+            if next_move['captured'] != (None, None):
+                captured1, captured2 = next_move['captured']
+                del self.board[(captured1.col, captured1.row)]
+                del self.board[(captured2.col, captured2.row)]
+                self.captures[player] += 2  # Restaurez les captures si nécessaire
+            return True
+        else:
+            return False
+
         
     def sandBox(self):
         gameState = self.getGameState()

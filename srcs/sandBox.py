@@ -13,6 +13,16 @@ def is_gom_file(fileName):
         raise argparse.ArgumentTypeError("Le fichier doit avoir l'extension '.gom'")
     return fileName
 
+def file_game(nom_base, extension = "gom"):
+    if not nom_base.startswith('parties/'):
+        nom_complet = 'parties/' + nom_base
+    else:
+        nom_complet = nom_base
+
+    if not nom_complet.endswith(f'.{extension}'):
+        nom_complet += f'.{extension}'
+    return nom_complet
+
 def file_name(nom_base, extension):
 
     if not nom_base.startswith('stats/'):
@@ -112,7 +122,7 @@ def graph(tab_time, coups, nb_coup, threads, fileName):
     # Affichage du graphique
     plt.show()
 
-def play_game(game_logic, filepath, log_file):
+def play_game(game_logic, filepath, log_file, save):
     if filepath is None:
         filepath = "Normale"
     result = CONTINUE_GAME
@@ -143,9 +153,11 @@ def play_game(game_logic, filepath, log_file):
     time.sleep(1)
     moyenne = temps_total/nb_coup
     play_time = end_time - start_time
+   
     if log_file is not None:
         csv_file = file_name(log_file, "csv")
         log_file = file_name(log_file, "log")
+        gom_file = file_game(log_file, "gom")
 
         texte = (f"Temps moyen pour une partie de {nb_coup} coups (ia={game_logic.ia_level}) Threads={game_logic.threads} => {moyenne:.02f} s/coup Max = {max_time:.02f}s Min = {min_time:.02f}s durée partie = {play_time:.02f}s\n")
         with open(log_file, 'a') as file:
@@ -154,8 +166,12 @@ def play_game(game_logic, filepath, log_file):
         ligne_csv = f"{filepath},{nb_coup},{game_logic.ia_level},{game_logic.threads},{moyenne:.02f},{max_time:.02f},{min_time:.02f},{play_time:.02f}\n"
         with open(csv_file, 'a') as file_csv:
             file_csv.write(ligne_csv)
+
     else:
         print(f"\nTemps moyen pour une partie de {Fore.BLUE}{nb_coup}{Style.RESET_ALL} coups (ia={Fore.YELLOW}{game_logic.ia_level}{Style.RESET_ALL}) Threads={Fore.BLUE if game_logic.threads else Fore.MAGENTA}{game_logic.threads}{Style.RESET_ALL} => {Fore.GREEN if moyenne < 1 else Fore.RED}{moyenne:.02f}{Style.RESET_ALL} s/coup Max = {Fore.RED}{max_time:.02f}{Style.RESET_ALL}s Min = {Fore.GREEN}{min_time:.02f}{Style.RESET_ALL}s durée partie = {play_time:.02f}s")
+        gom_file = file_game(f"normal{game_logic.ia_level}")
+    if save:
+        game_logic.save(gom_file)
     return tab_time, nb_coup, result
 
 def init_game(filepath, ia, threads):
@@ -169,12 +185,12 @@ def init_game(filepath, ia, threads):
     game_logic.threads = threads
     return game_logic
 
-def main(filepath, ia, threads, graphic, log_file):
+def main(filepath, ia, threads, graphic, log_file, save):
     if graphic:
         create_log(filepath, ia)
     game_logic = init_game(filepath, ia, threads)
     print(f"{''if filepath is None else filepath}Partie en cours")
-    tab_time, nb_coup, result = play_game(game_logic, filepath ,log_file)
+    tab_time, nb_coup, result = play_game(game_logic, filepath ,log_file, save)
     if result == INTERRUPTED:
         print("Interrompue")
     else:
@@ -191,6 +207,7 @@ if __name__ == "__main__":
     parser.add_argument("-c","--count", action="store_true", help="To count only the test stone")
     parser.add_argument("-f", "--file", type=str, help="Name of log file")
     parser.add_argument("-g","--graph", action="store_true", help="to graph")
+    parser.add_argument("-s","--save", action="store_true", help="to save the game in partie/ *..gom")
     
     args = parser.parse_args()
     if args.count and not args.threads:
@@ -198,4 +215,4 @@ if __name__ == "__main__":
         play_stat(args.load,args.ia)
         #  new game
         sys.exit(0)
-    main(args.load, args.ia, args.threads, args.graph, args.file)
+    main(args.load, args.ia, args.threads, args.graph, args.file, args.save)

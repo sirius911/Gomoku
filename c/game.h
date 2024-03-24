@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 14:41:21 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 17:46:29 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ bool is_three(const char *board, int x, int y, int dx, int dy, char player);
 bool check_double_three(char *board, int x, int y, char player);
 bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
+int count_seq_4_trous(const char *board, char player);
 
 // Prototypes des fonctions ai_logic
 void    free_gameState(GameState *game);
