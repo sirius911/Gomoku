@@ -232,10 +232,13 @@ class GomokuGUI:
             color = self.get_color_from_value(normalized_value)
             self.draw_stone_proxi(x, y, color, "proxi")
 
-    def on_ctrl_h_pressed(self, event):
+    def on_ctrl_h_pressed(self, _):
+        if self.print_value.get() == 0:
+            self.print_value.set(1)
         self.draw_proximate_stones()
 
     def clear_proximate_stones(self, event=None):
+        self.print_value.set(0)
         self.canvas.delete("proxi")  # Supprime toutes les pierres avec le tag "proxi"
 
     def blink_stone(self, x, y, color):
@@ -249,9 +252,6 @@ class GomokuGUI:
     def help(self):
         x,y = self.game_logic.help_IA()
         self.blink_stone(x,y, self.game_logic.current_player)
-
-    def ctrL_H(self):
-        self.draw_proximate_stones()
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent
