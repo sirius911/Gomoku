@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/22 17:06:50 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 14:35:44 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,28 +292,33 @@ bool score_move(GameState *gameState, char *board, int index, Move *move, const 
         - Make capture
     */
 	char opponent_player = (current_player == 'B')?'W':'B';
-	int num_player = (current_player == 'B') ? 0 : 1;
-	move->score = heuristic(move, current_player, board, index) * 10 + 5;
-	if (move->score == 105) {
+	// int num_player = (current_player == 'B') ? 0 : 1;
+    print("coordonees = %d %d, ", move->col, move->row);
+    int score = heuristic(move, current_player, board, index);
+	if (score == -1){
 		move->score = 500;
 		return true;
-	}
+    }
+    else
+        move->score = score * 10 + 5;
+    print("coup joueur = %d, ", move->score);
     board[index] = opponent_player;
-	int score = heuristic(move, opponent_player, board, index) * 10;
+	score = heuristic(move, opponent_player, board, index) * 10;
 	if (score == 100) {
 		move->score = 300;
 	}
 	else
 		move->score += score;
 	board[index] = current_player;
-	if (check_capture_score(board, move, current_player, opponent_player)) {
-		if (gameState->captures[num_player] == 8)
-			move->score += 500;
-		else if (gameState->captures[num_player] == 6)
-			move->score += 90;
-		else
-			move->score += 70;
-	}
+    print("coup adversaire = %d\n", score);
+	// if (check_capture_score(board, move, current_player, opponent_player)) {
+	// 	if (gameState->captures[num_player] == 8)
+	// 		move->score += 500;
+	// 	else if (gameState->captures[num_player] == 6)
+	// 		move->score += 90;
+	// 	else
+	// 		move->score += 70;
+	// }
 	return false;
 }
 

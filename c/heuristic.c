@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/22 16:10:01 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 14:32:03 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,18 +17,12 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	 * This function return a score depending on:
 	 * Sequences this move can create or continue
 	*/
-	int best_sequence = 0;
-	// print("Coordonnees = col : %d, row : %d\n", move->col, move->row);
-	// for (int i = 0; i < SIZE; i++){
-	// 	for (int j = 0; map[i][j]; j++) {
-	// 		print("%c ", map[i][j]);
-	// 	}
-	// 	print("\n");
-	// }
+	int score_total = 0;
 
 	char opponent_player = (current_player=='B')?'W':'B';
 	int col = move->col, row = move->row, sequence = 0;
 	int extrem1 = 0, extrem2 = 0;
+
 	// HORIZONTALLY
 	while ((index >= (row * SIZE)) && board[index] == current_player) {
 		sequence++;
@@ -43,14 +37,14 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	}
 	sequence *= 2;
 	if (sequence >= 10)
-		return 10;
+		return WIN_MOVE;
 	if ((index < ((row + 1) * SIZE)) && board[index] != opponent_player)
 		extrem2 = 1;
-	if (extrem1 && extrem2)
-		sequence += 1;
-	else if (extrem1 == 0 && extrem2 == 0)
+	if ((extrem1 == 0 && extrem2 == 0) || (sequence == 2))
 		sequence = 0;
-	best_sequence = sequence;
+	else if (extrem1 && extrem2)
+		sequence += 1;
+	score_total = sequence;
 
 	// VERTICALLY
 	sequence = 0, index = idx(move->col, move->row);
@@ -68,15 +62,14 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	}
 	sequence *= 2;
 	if (sequence >= 10)
-		return 10;
+		return WIN_MOVE;
 	if ((index < (SIZE * SIZE)) && board[index] != opponent_player)
 		extrem2 = 1;
-	if (extrem1 && extrem2)
-		sequence += 1;
-	else if (extrem1 == 0 && extrem2 == 0)
+	if ((extrem1 == 0 && extrem2 == 0) || (sequence == 2))
 		sequence = 0;
-	if (sequence > best_sequence)
-		best_sequence = sequence;
+	else if (extrem1 && extrem2)
+		sequence += 1;
+	score_total += sequence;
 
 	// DIAGONALLY (from top left to bottom right)
 	sequence = 0, index = idx(move->col, move->row);
@@ -100,15 +93,14 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	}
 	sequence *= 2;
 	if (sequence >= 10)
-		return 10;
+		return WIN_MOVE;
 	if ((index < (SIZE * SIZE)) && (index < ((row + 1) * SIZE)) && board[index] != opponent_player)
 		extrem2 = 1;
-	if (extrem1 && extrem2)
-		sequence += 1;
-	else if (extrem1 == 0 && extrem2 == 0)
+	if ((extrem1 == 0 && extrem2 == 0) || (sequence == 2))
 		sequence = 0;
-	if (sequence > best_sequence)
-		best_sequence = sequence;
+	else if (extrem1 && extrem2)
+		sequence += 1;
+	score_total += sequence;
 
 	// DIAGONALLY (from top right to bottom left)
 	extrem1 = 0, extrem2 = 0;
@@ -134,17 +126,16 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 	}
 	sequence *= 2;
 	if (sequence >= 10)
-		return 10;
+		return WIN_MOVE;
 	if (row < SIZE && col >= 0 && board[index] != opponent_player)
 		extrem2 = 1;
-	if (extrem1 && extrem2)
-		sequence += 1;
-	else if (extrem1 == 0 && extrem2 == 0)
+	if ((extrem1 == 0 && extrem2 == 0) || (sequence == 2))
 		sequence = 0;
-	if (sequence > best_sequence)
-		best_sequence = sequence;
+	else if (extrem1 && extrem2)
+		sequence += 1;
+	score_total += sequence;
 
-	return best_sequence;
+	return score_total;
 }
 
 // Fonction de comparaison pour qsort

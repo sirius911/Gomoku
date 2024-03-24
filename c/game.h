@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/22 11:50:04 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 14:31:24 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #define MAX_MOVES (SIZE * SIZE)
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
+#define WIN_MOVE -1
 
 extern bool DEBUG;  
 extern bool STAT;
