@@ -1,6 +1,6 @@
 import tkinter as tk
 from constants import *
-from dialogs import EndGameDialog, CustomDialog
+from dialogs import EndGameDialog, CustomDialog, hsl_to_rgb
 from game_logic import GomokuLogic
 from tkinter import filedialog
 
@@ -96,6 +96,8 @@ class GomokuGUI:
         self.master.bind('<Control-e>', lambda event: self.switch_edition())
         self.master.bind('<Control-v>', lambda event: self.switch_print_value())
         self.master.bind('<h>', lambda event: self.help())
+        self.master.bind('<Control-h>', self.on_ctrl_h_pressed)
+        self.master.bind('<KeyRelease-Control_L>', self.clear_proximate_stones)
         self.master.bind('<b>', lambda event: self.change_color('black'))
         self.master.bind('<w>', lambda event: self.change_color('white')
                          )
@@ -192,6 +194,50 @@ class GomokuGUI:
         center_y = self.top_margin + y * self.cell_size
         self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags=tag)
 
+    def draw_stone_proxi(self, x, y, color, tag="proxi"):
+        # Dessinez le grand cercle (pierre)
+        radius = self.cell_size // 2 - 2
+        center_x = self.margin + x * self.cell_size
+        center_y = self.top_margin + y * self.cell_size
+        self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill="#dcdcdc", tags=tag)
+
+        # Dessinez le petit cercle intérieur avec la couleur basée sur la valeur stratégique
+        inner_radius = radius // 3  # Taille fixe pour le cercle intérieur
+        self.canvas.create_oval(center_x - inner_radius, center_y - inner_radius, center_x + inner_radius, center_y + inner_radius, fill=color, outline=color, tags=tag)
+
+
+    def get_color_from_value(self, normalized_value):
+        """
+        Convertit une valeur normalisée (entre 0 et 1) en une couleur.
+        Utilise un spectre de couleur passant du rouge au vert, avec des nuances intermédiaires.
+        """
+        # Calcul de la teinte : 0° (rouge) à 120° (vert)
+        hue = normalized_value * 120
+        # Saturation et luminosité fixes pour des couleurs vives et éviter le blanc et le noir
+        saturation = 1.0  # Saturation à 100%
+        lightness = 0.5  # Luminosité à 50%
+        return hsl_to_rgb(hue, saturation, lightness)
+
+    def draw_proximate_stones(self):
+        proximate_moves = self.game_logic.get_proximate_moves()
+        if not proximate_moves:  # Vérifier s'il y a des mouvements
+            return
+
+        values = list(proximate_moves.values())
+        min_val, max_val = min(values), max(values)
+
+        # Dessinez chaque coup avec une couleur basée sur sa valeur normalisée
+        for (x, y), value in proximate_moves.items():
+            normalized_value = (value - min_val) / (max_val - min_val) if max_val != min_val else 0.5
+            color = self.get_color_from_value(normalized_value)
+            self.draw_stone_proxi(x, y, color, "proxi")
+
+    def on_ctrl_h_pressed(self, event):
+        self.draw_proximate_stones()
+
+    def clear_proximate_stones(self, event=None):
+        self.canvas.delete("proxi")  # Supprime toutes les pierres avec le tag "proxi"
+
     def blink_stone(self, x, y, color):
         self.draw_stone(x,y,color,"blink")
         self.canvas.after(500, lambda: [
@@ -203,6 +249,9 @@ class GomokuGUI:
     def help(self):
         x,y = self.game_logic.help_IA()
         self.blink_stone(x,y, self.game_logic.current_player)
+
+    def ctrL_H(self):
+        self.draw_proximate_stones()
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent

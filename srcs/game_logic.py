@@ -278,3 +278,37 @@ class GomokuLogic:
         value1 = self.libgame.value_coup(gameState, x, y) # issue des eval minmax
         value2 = self.libgame.value_coup2(gameState, x, y) # issue du score des proximates moves
         return value1, value2
+    
+    def get_proximate_moves(self):
+        proximates = {}
+        # Préparation des variables pour recevoir les valeurs de findBoxElements
+        topLeftX = ctypes.c_int()
+        topLeftY = ctypes.c_int()
+        bottomRightX = ctypes.c_int()
+        bottomRightY = ctypes.c_int()
+
+        # Appel de findBoxElements
+        game_state = GameState()
+        board_bytes = self.board_2_char()
+        game_state.board = ctypes.cast(board_bytes, ctypes.POINTER(ctypes.c_char))  # Conversion en POINTER(c_char)
+        game_state.captures = (ctypes.c_int * 2)(self.captures['black'], self.captures['white'])  # Initialiser les captures
+        game_state.currentPlayer = ctypes.c_char(self.current_player.capitalize()[0].encode('utf-8'))
+        self.libgame.findBoxElements(board_bytes, ctypes.byref(topLeftX), ctypes.byref(topLeftY), ctypes.byref(bottomRightX), ctypes.byref(bottomRightY))
+        
+        # Préparation de la variable pour le compte des mouvements
+        move_count = ctypes.c_int()
+        self.libgame.proximate_moves.argtypes = [ctypes.POINTER(GameState), ctypes.POINTER(ctypes.c_int), ctypes.c_char, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+        self.libgame.proximate_moves.restype = ctypes.POINTER(Move)
+
+        # Appel de proximate_moves
+        self.libgame.findBoxElements(board_bytes, ctypes.byref(topLeftX), ctypes.byref(topLeftY), ctypes.byref(bottomRightX), ctypes.byref(bottomRightY))
+        moves = self.libgame.proximate_moves(self.getGameState(), ctypes.byref(move_count), game_state.currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY)
+
+        for i in range(move_count.value):
+            move = moves[i]
+            value1, value2 = self.value_coup(move.col, move.row)
+            # print(f"({move.col},{move.row}) = {value1}, {value2}")
+            proximates[(move.col, move.row)] = value1
+        # N'oubliez pas de libérer la mémoire allouée par proximate_moves si nécessaire
+        self.libgame.free_moves(moves)
+        return proximates
