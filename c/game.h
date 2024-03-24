@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 14:01:08 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 14:24:42 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,7 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
 int value_coup(GameState *gameState, int currentMoveX, int currentMoveY);
+int value_coup2(GameState *gameState, int currentMoveX, int currentMoveY);
 
 // Protoypes des fonctions dans heuristic.c
 int heuristic(Move *move, const char current_player, char *board, int index);

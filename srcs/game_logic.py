@@ -234,5 +234,6 @@ class GomokuLogic:
     def value_coup(self,x, y):
         self.libgame.value_coup.restype = ctypes.c_int
         gameState = self.getGameState()
-        value = self.libgame.value_coup(gameState, x, y)
-        return value
+        value1 = self.libgame.value_coup(gameState, x, y) # issue des eval minmax
+        value2 = self.libgame.value_coup2(gameState, x, y) # issue du score des proximates moves
+        return value1, value2
