@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/22 17:06:50 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/24 15:58:16 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ int _evaluate_player(const GameState *gameState, char player) {
     score += count_sequences(gameState->board, player, 3) * 50;
     score += count_sequences(gameState->board, player, 4) *10000;
 
+    score += count_seq_4_trous(gameState->board, player) * 400;
+
     score += gameState->captures[num_player] * 100 ;
     return score;
 }
@@ -49,6 +51,8 @@ int _evaluate_opponent(const GameState *gameState, char opponent) {
     score += count_sequences(gameState->board, opponent, 2) * 20;
     score += count_sequences(gameState->board, opponent, 3) * 100;
     score += count_sequences(gameState->board, opponent, 4) * 100000;
+
+    score += count_seq_4_trous(gameState->board, opponent) * 500;
 
     score += gameState->captures[num_player] * 50 ;
     return score;
