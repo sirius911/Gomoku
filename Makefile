@@ -58,7 +58,7 @@ re: clean
 
 run_valgrind:
 	@echo "Lancement de valgrind... 🍺";
-	@valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
+	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
 	@if grep -q "libgame.so" leaks.txt; then \
 		grep "libgame.so" leaks.txt; \
 	else \

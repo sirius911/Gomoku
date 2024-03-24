@@ -3,6 +3,7 @@
 	"files.associations": {
 		"optional": "c",
 		"variant": "c",
-		"stdarg.h": "c"
+		"stdarg.h": "c",
+		"complex": "cpp"
 	}
 }

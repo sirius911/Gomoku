@@ -414,11 +414,9 @@ class GomokuGUI:
         # Mettez à jour le label avec les coordonnées de la grille
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
         if self.print_value.get():
-            value = self.game_logic.value_coup(grid_x, grid_y)
-            if value == -1:
-                self.show_tooltip(f"Coup Gagnant", event.x_root, event.y_root)
-            else:
-                self.show_tooltip(f"Valeur: {value}", event.x_root, event.y_root)
+            value1, value2 = self.game_logic.value_coup(grid_x, grid_y)
+            text = f"{'Coup Gagnant' if value1 == -1 else value1}/{'Coup Gagnant' if value2 == -1 else value2} "
+            self.show_tooltip(f"Valeur: {text}", event.x_root, event.y_root)
         else:
             # Détruire la bulle si elle existe et l'option n'est pas activée
             if hasattr(self, 'tooltip_window'):
