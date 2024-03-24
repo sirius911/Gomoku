@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 10:48:54 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 14:24:03 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 14:47:08 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,13 @@ int value_coup2(GameState *gameState, int currentMoveX, int currentMoveY){
     move->row=currentMoveY;
     int index = idx(currentMoveX, currentMoveY);
     char *copie_board = malloc(SIZE * SIZE + 1); // Alloue de la mémoire pour une copie
+    
     if (copie_board == NULL) {
         fprintf(stderr, "Allocation de mémoire échouée\n");
         exit(EXIT_FAILURE);
     }
     strcpy(copie_board, gameState->board); // Copie l'original dans la nouvelle copie
+    copie_board[index] = gameState->currentPlayer;
     if (score_move(gameState, copie_board, index, move, gameState->currentPlayer)){
         free(copie_board);
         free(move);
