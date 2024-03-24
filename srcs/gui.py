@@ -41,6 +41,8 @@ class GomokuGUI:
         self.coups_menu = tk.Menu(menu_bar, tearoff=0)
         self.coups_menu.add_command(label="Undo (Ctrl+Z)", command=self.undo)
         self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+        self.coups_menu.add_command(label="Redo (Ctrl-Shift-Z)", command=self.redo)
+        self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="disabled")
         self.edition = tk.BooleanVar()
         self.edition.set(False)
         self.coups_menu.add_checkbutton(label="Edition (Ctrl-E)", variable=self.edition, command=self.manual)
@@ -88,6 +90,7 @@ class GomokuGUI:
 
         # Bind keyboard shortcuts
         self.master.bind('<Control-z>', lambda event: self.undo())
+        self.master.bind('<Control-Shift-Z>', lambda event: self.redo())
         self.master.bind('<Control-c>', lambda event: self.quit_game())
         self.master.bind('<Control-s>', lambda event: self.save_game())
         self.master.bind('<Control-e>', lambda event: self.switch_edition())
@@ -330,8 +333,8 @@ class GomokuGUI:
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
 
-            if self.is_IA_turn():
-                self.ia_play()
+            # if self.is_IA_turn():
+            #     self.ia_play()
 
     def version(self):
         title = f"Gomoku {VERSION}"
@@ -384,11 +387,24 @@ class GomokuGUI:
         self.update_captures_display(self.game_logic.captures)
         self.draw_current_player_indicator()
 
+    def redo(self):
+        self.game_logic.redo_move()
+        self.update_undo_menu()
+        self.draw_stones()
+        self.update_captures_display(self.game_logic.captures)
+        self.draw_current_player_indicator()
+
     def update_undo_menu(self):
-        if len(self.game_logic.history) > 0:
+        l = len(self.game_logic.history)
+        if l > 0 and self.game_logic.history_index >= 0:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="normal")
         else:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+
+        if l > 0 and self.game_logic.history_index < l - 1:
+            self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="normal")
+        else:
+            self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="disabled")
 
     def change_color(self, color):
         if self.edition.get():

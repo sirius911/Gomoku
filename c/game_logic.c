@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:51:51 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 15:45:35 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/24 16:10:43 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,9 @@ int count_seq_4_trous(const char *board, char player){
         {1, 0}, {0, 1}, {-1, 0}, {0, -1},
         {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
     };
-    int good[6] = {0,1,1,0,1,0};
+
+    int good[6] = {0,1,1,0,1,0}; // {-1,1,1,0,1,0}
+    
     for (int y = 0; y < SIZE; ++y) {
         for (int x = 0; x < SIZE; ++x) {
             if (board[idx(x, y)] != player) continue;
