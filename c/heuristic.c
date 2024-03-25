@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/24 16:43:38 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/25 16:49:20 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		else
 			sequence = 200;
 	}
+	else
+		sequence  = 0;
 	score_total = sequence;
 
 	// VERTICALLY
@@ -89,6 +91,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		else
 			sequence = 200;
 	}
+	else
+		sequence  = 0;
 	score_total += sequence;
 
 	// DIAGONALLY (from top left to bottom right)
@@ -132,6 +136,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		else
 			sequence = 200;
 	}
+	else
+		sequence  = 0;
 	score_total += sequence;
 
 	// DIAGONALLY (from top right to bottom left)
@@ -179,6 +185,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		else
 			sequence = 200;
 	}
+	else
+		sequence  = 0;
 	score_total += sequence;
 
 	return score_total;
