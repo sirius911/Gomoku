@@ -5,7 +5,7 @@ UNAME_S := $(shell uname -s)
 PATH_LIB := lib/
 PATH_SRCS := c/
 
-SRC := utils.c game_logic.c minmax.c sandBox.c threads.c
+SRC := utils.c game_logic.c minmax.c sandBox.c threads.c heuristic.c
 SRCS := $(addprefix $(PATH_SRCS),$(SRC))
 OBJ := $(SRCS:.c=.o)
 
@@ -45,7 +45,7 @@ build: $(SRCS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRCS)
 
 opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
-opti: $(TARGET)
+opti:  clean $(TARGET)
 
 run: $(TARGET)
 	-python3 srcs/Gomoku.py
@@ -58,11 +58,11 @@ re: clean
 
 run_valgrind:
 	@echo "Lancement de valgrind... 🍺";
-	@valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
+	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
 	@if grep -q "libgame.so" leaks.txt; then \
 		grep "libgame.so" leaks.txt; \
 	else \
 		echo "No leaks of libgame.so "; \
 	fi
 
-.PHONY: all build clean re
+.PHONY: all build clean re opti

@@ -1,6 +1,6 @@
 import tkinter as tk
 from constants import *
-from dialogs import EndGameDialog, CustomDialog
+from dialogs import EndGameDialog, CustomDialog, hsl_to_rgb
 from game_logic import GomokuLogic
 from tkinter import filedialog
 
@@ -41,10 +41,15 @@ class GomokuGUI:
         self.coups_menu = tk.Menu(menu_bar, tearoff=0)
         self.coups_menu.add_command(label="Undo (Ctrl+Z)", command=self.undo)
         self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+        self.coups_menu.add_command(label="Redo (Ctrl-Shift-Z)", command=self.redo)
+        self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="disabled")
         self.edition = tk.BooleanVar()
         self.edition.set(False)
         self.coups_menu.add_checkbutton(label="Edition (Ctrl-E)", variable=self.edition, command=self.manual)
-        
+        self.coups_menu.add_separator()
+        self.print_value = tk.BooleanVar()
+        self.print_value.set(False)
+        self.coups_menu.add_checkbutton(label="Affiche Valeur Coup (Ctrl-V)", variable=self.print_value)
         # Créer un menu "IA"
         self.ia_black_var = tk.IntVar()
         self.ia_white_var = tk.IntVar()
@@ -85,10 +90,14 @@ class GomokuGUI:
 
         # Bind keyboard shortcuts
         self.master.bind('<Control-z>', lambda event: self.undo())
+        self.master.bind('<Control-Shift-Z>', lambda event: self.redo())
         self.master.bind('<Control-c>', lambda event: self.quit_game())
         self.master.bind('<Control-s>', lambda event: self.save_game())
         self.master.bind('<Control-e>', lambda event: self.switch_edition())
+        self.master.bind('<Control-v>', lambda event: self.switch_print_value())
         self.master.bind('<h>', lambda event: self.help())
+        self.master.bind('<Control-h>', self.on_ctrl_h_pressed)
+        self.master.bind('<KeyRelease-Control_L>', self.clear_proximate_stones)
         self.master.bind('<b>', lambda event: self.change_color('black'))
         self.master.bind('<w>', lambda event: self.change_color('white')
                          )
@@ -118,6 +127,7 @@ class GomokuGUI:
     def on_canvas_click(self, event):
         x, y = self.convert_pixel_to_grid(event.x, event.y)
         if not self.edition.get():
+            self.game_logic.value_coup(x,y)
             status = self.game_logic.play(x, y)
             if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
                 if status == FORBIDDEN_MOVE:
@@ -183,6 +193,53 @@ class GomokuGUI:
         # Utiliser self.top_margin pour ajuster la position verticale des pierres
         center_y = self.top_margin + y * self.cell_size
         self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags=tag)
+
+    def draw_stone_proxi(self, x, y, color, tag="proxi"):
+        # Dessinez le grand cercle (pierre)
+        radius = self.cell_size // 2 - 2
+        center_x = self.margin + x * self.cell_size
+        center_y = self.top_margin + y * self.cell_size
+        self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill="#dcdcdc", tags=tag)
+
+        # Dessinez le petit cercle intérieur avec la couleur basée sur la valeur stratégique
+        inner_radius = radius // 3  # Taille fixe pour le cercle intérieur
+        self.canvas.create_oval(center_x - inner_radius, center_y - inner_radius, center_x + inner_radius, center_y + inner_radius, fill=color, outline=color, tags=tag)
+
+
+    def get_color_from_value(self, normalized_value):
+        """
+        Convertit une valeur normalisée (entre 0 et 1) en une couleur.
+        Utilise un spectre de couleur passant du rouge au vert, avec des nuances intermédiaires.
+        """
+        # Calcul de la teinte : 0° (rouge) à 120° (vert)
+        hue = normalized_value * 120
+        # Saturation et luminosité fixes pour des couleurs vives et éviter le blanc et le noir
+        saturation = 1.0  # Saturation à 100%
+        lightness = 0.5  # Luminosité à 50%
+        return hsl_to_rgb(hue, saturation, lightness)
+
+    def draw_proximate_stones(self):
+        proximate_moves = self.game_logic.get_proximate_moves()
+        if not proximate_moves:  # Vérifier s'il y a des mouvements
+            return
+
+        values = list(proximate_moves.values())
+        min_val, max_val = min(values), max(values)
+
+        # Dessinez chaque coup avec une couleur basée sur sa valeur normalisée
+        for (x, y), value in proximate_moves.items():
+            normalized_value = (value - min_val) / (max_val - min_val) if max_val != min_val else 0.5
+            color = self.get_color_from_value(normalized_value)
+            self.draw_stone_proxi(x, y, color, "proxi")
+
+    def on_ctrl_h_pressed(self, _):
+        if self.print_value.get() == 0:
+            self.print_value.set(1)
+        self.draw_proximate_stones()
+
+    def clear_proximate_stones(self, event=None):
+        self.print_value.set(0)
+        self.canvas.delete("proxi")  # Supprime toutes les pierres avec le tag "proxi"
 
     def blink_stone(self, x, y, color):
         self.draw_stone(x,y,color,"blink")
@@ -325,8 +382,8 @@ class GomokuGUI:
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
 
-            if self.is_IA_turn():
-                self.ia_play()
+            # if self.is_IA_turn():
+            #     self.ia_play()
 
     def version(self):
         title = f"Gomoku {VERSION}"
@@ -379,11 +436,24 @@ class GomokuGUI:
         self.update_captures_display(self.game_logic.captures)
         self.draw_current_player_indicator()
 
+    def redo(self):
+        self.game_logic.redo_move()
+        self.update_undo_menu()
+        self.draw_stones()
+        self.update_captures_display(self.game_logic.captures)
+        self.draw_current_player_indicator()
+
     def update_undo_menu(self):
-        if len(self.game_logic.history) > 0:
+        l = len(self.game_logic.history)
+        if l > 0 and self.game_logic.history_index >= 0:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="normal")
         else:
             self.coups_menu.entryconfig("Undo (Ctrl+Z)", state="disabled")
+
+        if l > 0 and self.game_logic.history_index < l - 1:
+            self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="normal")
+        else:
+            self.coups_menu.entryconfig("Redo (Ctrl-Shift-Z)", state="disabled")
 
     def change_color(self, color):
         if self.edition.get():
@@ -394,9 +464,10 @@ class GomokuGUI:
         self.edition.set(not self.edition.get())
         self.manual()
 
+    def switch_print_value(self):
+        self.print_value.set(not self.print_value.get())
+
     def manual(self):
-        # print(f"self.edition = {self.edition.get()}")
-        # print(f"self.is_IA_turn = {self.is_IA_turn()}")
         self.draw_current_player_indicator()
         if not self.edition.get():
             if self.is_IA_turn():
@@ -407,6 +478,23 @@ class GomokuGUI:
         grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
         # Mettez à jour le label avec les coordonnées de la grille
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
+        if self.print_value.get():
+            value1, value2 = self.game_logic.value_coup(grid_x, grid_y)
+            text = f"{'Coup Gagnant' if value1 == -1 else value1}/{'Coup Gagnant' if value2 == -1 else value2} "
+            self.show_tooltip(f"Valeur: {text}", event.x_root, event.y_root)
+        else:
+            # Détruire la bulle si elle existe et l'option n'est pas activée
+            if hasattr(self, 'tooltip_window'):
+                self.tooltip_window.destroy()
+
+    def show_tooltip(self, text, x, y):
+        if hasattr(self, 'tooltip_window'):
+            self.tooltip_window.destroy()
+        self.tooltip_window = tk.Toplevel(self.master)
+        self.tooltip_window.wm_overrideredirect(True)
+        self.tooltip_window.wm_geometry(f"+{x+20}+{y+20}")
+        label = tk.Label(self.tooltip_window, text=text, background="#ffffe0", relief=tk.SOLID, borderwidth=1, font=("tahoma", "8", "normal"))
+        label.pack()
 
     def toggle_threads(self):
         self.game_logic.threads = (self.threads.get() == 1)
