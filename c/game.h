@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 17:46:29 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/25 17:18:18 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,5 +102,6 @@ bool check_capture_score(char *board, Move *move, char current_player, char oppo
 int compare_age(void const *a, void const *b);
 char **create_map(const char *copie_board);
 void free_map(char **map);
+int verif_sequence(int sequence, int extrem1, int extrem2);
 
 #endif // GAME_H
