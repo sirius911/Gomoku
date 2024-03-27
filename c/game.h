@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 17:46:29 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/27 09:23:23 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,14 @@
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
 #define WIN_MOVE -1
+
+#define SEQ_4_LIBRE "011110"
+#define SEQ_4_SEMI_LIBRE "+11110"
+#define SEQ_4_TROUS "011010"
+#define SEQ_3_LIBRE "01110*"
+#define SEQ_3_SEMI_LIBRE "+1110*"
+#define SEQ_2_SEMI_LIBRE "011+**"
+#define SEQ_2_LIBRE "0110**"
 
 extern bool DEBUG;  
 extern bool STAT;
@@ -76,7 +84,6 @@ bool is_three(const char *board, int x, int y, int dx, int dy, char player);
 bool check_double_three(char *board, int x, int y, char player);
 bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
-int count_seq_4_trous(const char *board, char player);
 
 // Prototypes des fonctions ai_logic
 void    free_gameState(GameState *game);
@@ -102,5 +109,9 @@ bool check_capture_score(char *board, Move *move, char current_player, char oppo
 int compare_age(void const *a, void const *b);
 char **create_map(const char *copie_board);
 void free_map(char **map);
+
+// fichiers essais.c
+int counter(const char *board, const char player, const char good[6]);
+int count_seq_4_trous(const char *board, char player);
 
 #endif // GAME_H

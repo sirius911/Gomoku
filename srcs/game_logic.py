@@ -31,8 +31,8 @@ class GomokuLogic:
         # libgame_path = os.path.join(current_dir, libname)
         try:
             self.libgame = ctypes.CDLL(libname)
-        except OSError:
-            print(f"La librairie {libname} n'est pas disponible !")
+        except OSError as e:
+            print(f"La librairie {libname} n'est pas disponible !{e}")
             sys.exit(0)
         except Exception as e:
             print(e)

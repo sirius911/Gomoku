@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 10:48:54 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 22:39:49 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/26 16:07:14 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,14 @@ int nb_coups(GameState *gameState){
 }
 
 int value_coup(GameState *gameState, int currentMoveX, int currentMoveY){
+    // test des count_seq
+    gameState->board[idx(currentMoveX, currentMoveY)] = gameState->currentPlayer;
+    printf("%c-2 libres : %d\n", gameState->currentPlayer, counter(gameState->board, gameState->currentPlayer, SEQ_2_LIBRE));
+    // printf("%c-2 semi-libre :  %d\n", gameState->currentPlayer, count_seq_2_semi_libre(gameState->board,gameState->currentPlayer));
+    // printf("%c-3 libres : %d\n", gameState->currentPlayer, count_seq_3_libre(gameState->board, gameState->currentPlayer));
+    // printf("%c-3 semi-libre : %d\n", gameState->currentPlayer, count_seq_3_semi_libre(gameState->board, gameState->currentPlayer));
+    gameState->board[idx(currentMoveX, currentMoveY)] = '0';
+    return 0;
     char winner = '0';
     char current_player = gameState->currentPlayer;
     char opponent = adversaire(current_player);
