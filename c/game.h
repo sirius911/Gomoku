@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/27 09:23:23 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/27 17:17:36 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,11 @@
 #define SEQ_3_SEMI_LIBRE "+1110*"
 #define SEQ_2_SEMI_LIBRE "011+**"
 #define SEQ_2_LIBRE "0110**"
+#define SEQ_5 "11111*"
+
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 
 extern bool DEBUG;  
 extern bool STAT;
@@ -87,8 +92,8 @@ int count_sequences(const char *board, char player, int base_taille_seq);
 
 // Prototypes des fonctions ai_logic
 void    free_gameState(GameState *game);
-int _evaluate_player(const GameState *gameState, char player);
-int _evaluate_opponent(const GameState *gameState, char opponent);
+// int _evaluate_player(const GameState *gameState, char player);
+// int _evaluate_opponent(const GameState *gameState, char opponent);
 GameState *apply_move(const GameState *original_gameState, int x, int y);
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
@@ -113,5 +118,8 @@ void free_map(char **map);
 // fichiers essais.c
 int counter(const char *board, const char player, const char good[6]);
 int count_seq_4_trous(const char *board, char player);
+int evaluation_player(const GameState *gameState, const char player);
+int evaluation_opponent(const GameState *gameState, const char player);
+int evaluate_game(const GameState *gameState);
 
 #endif // GAME_H

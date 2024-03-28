@@ -81,6 +81,7 @@ class GomokuLogic:
     def play_IA(self):
         
         gameState = self.getGameState()
+        # if self.debug:
         self.libgame.analyse(gameState, self.debug)
         start_time = time.time()
         if self.threads:
@@ -308,7 +309,7 @@ class GomokuLogic:
             move = moves[i]
             value1, value2 = self.value_coup(move.col, move.row)
             # print(f"({move.col},{move.row}) = {value1}, {value2}")
-            proximates[(move.col, move.row)] = value2
+            proximates[(move.col, move.row)] = value1-value2
         # N'oubliez pas de libérer la mémoire allouée par proximate_moves si nécessaire
         self.libgame.free_moves(moves)
         return proximates

@@ -156,7 +156,9 @@ class GomokuGUI:
         status = CONTINUE_GAME
         while  status == CONTINUE_GAME and self.is_IA_turn():
             self.saved = False
+            self.master.config(cursor="watch")
             status,play_time = self.game_logic.play_IA()
+            self.master.config(cursor="")
             self.draw_stones()
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
@@ -250,8 +252,10 @@ class GomokuGUI:
         self.draw_stones()
 
     def help(self):
+        self.master.config(cursor="watch")
         x,y = self.game_logic.help_IA()
         self.blink_stone(x,y, self.game_logic.current_player)
+        self.master.config(cursor="")
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent
@@ -480,7 +484,7 @@ class GomokuGUI:
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
         if self.print_value.get():
             value1, value2 = self.game_logic.value_coup(grid_x, grid_y)
-            text = f"{'Coup Gagnant' if value1 == -1 else value1}/{'Coup Gagnant' if value2 == -1 else value2} "
+            text = f"{'Coup Gagnant' if value1 == -1 else value1}  {'Coup Gagnant' if value2 == -1 else value2} = {value1-value2}"
             self.show_tooltip(f"Valeur: {text}", event.x_root, event.y_root)
         else:
             # Détruire la bulle si elle existe et l'option n'est pas activée

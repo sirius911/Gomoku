@@ -6,20 +6,11 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 12:50:04 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/27 09:22:48 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/28 10:57:17 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
-
-#define SEQ_4_LIBRE "011110"
-#define SEQ_4_SEMI_LIBRE "+11110"
-#define SEQ_4_TROUS "011010"
-#define SEQ_3_LIBRE "01110*"
-#define SEQ_3_SEMI_LIBRE "+1110*"
-#define SEQ_2_SEMI_LIBRE "011+**"
-#define SEQ_2_LIBRE "0110**"
-
 
 // Compare deux chaînes en tenant compte des jokers '*' '+'
 // Retourne true si les chaînes correspondent, false sinon
@@ -94,45 +85,92 @@ int counter(const char *board, const char player, const char good[6]){
                 // Vérifie si la séquence correspond à une des séquences de "good" autorisées
                     if (matchWithJoker(sequence, good))
                         count++;
-                free(sequence);
+                if(sequence)
+                    free(sequence);
             }
         }
     }
     return count;
 }
 
-// int count_seq_4_libre(const char *board, char player){
-//     const char good[] = "011110";
-//     return counter(board, player, good);
-// }
-
-// int count_seq_4_semi_libre(const char *board, char player){
-//     const char good[] = "+11110";
-//     return counter(board, player, good);
-// }
-
 int count_seq_4_trous(const char *board, char player){
-    const char good[] = "011010"; 
-    return counter(board, player, good);
+    return counter(board, player, SEQ_4_TROUS);
 }
 
-// int count_seq_3_libre(const char *board, char player){
-//     const char good[] = "01110*";
-//     return counter(board, player, good)/2;
-// }
+#define SCORE_A_PLAYER 2000
+#define SCORE_B_PLAYER 50
+#define SCORE_C_PLAYER 25
+#define SCORE_D_PLAYER 10
+#define SCORE_E_PLAYER 5
+#define SCORE_PRISE_PLAYER 100
+int evaluation_player(const GameState *gameState, const char player){
+    int _4_, _4, _4t, _3_, _3, _2_, _2;
+    int score = 0;
+    int num_player =( player == 'B')? 0:1;
 
-// int count_seq_3_semi_libre(const char *board, char player){
-//     const char good[] = "+1110*";
-//     return counter(board, player, good);
-// }
+    int nb_prise = gameState->captures[num_player];
 
-// int count_seq_2_semi_libre(const char *board, char player){
-//     //sans distingo libre semi-libre
-//     const char good[] = "011+**";
-//     return counter(board, player, good);
-// }
+    if (counter(gameState->board, player, SEQ_5) > 0 || nb_prise >= 10)
+        return MAX_EVAL;
+    
+    _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
+    if ( _4_ > 0)
+        return MAX_EVAL -1;
+    _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
+    _4t = counter(gameState->board, player, SEQ_4_TROUS);
+    score += SCORE_A_PLAYER * (_4 + _4t);
+    _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
+    score += SCORE_B_PLAYER * (_3_ / 2);
+    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE) - _4_ - _4;
+    score += (_3 * SCORE_C_PLAYER);
+    _2_ = counter(gameState->board, player, SEQ_2_LIBRE) / 2;
+    score += (_2_ * SCORE_D_PLAYER);
+    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE) - _4_ - _4 - _3_ - _3;
+    score += (_2 * SCORE_E_PLAYER);
+    score += (nb_prise * SCORE_PRISE_PLAYER);
+    return score;
+}
+#define SCORE_A_OPPONENT 4000
+#define SCORE_B_OPPONENT 500
+#define SCORE_C_OPPONENT 40
+#define SCORE_D_OPPONENT 20
+#define SCORE_E_OPPONENT 10
+#define SCORE_PRISE_OPPONENT 50
+int evaluation_opponent(const GameState *gameState, const char player){
+    int _4_, _4, _4t, _3_, _3, _2_, _2;
+    int score = 0;
+    int num_player =( player == 'B')? 0:1;
 
-// int count_seq_2_libre(const char *board, char player){
-//     const char good[] = "0110**";
-//     return counter(board, player, good)/2;
-// }
+    int nb_prise = gameState->captures[num_player];
+
+    if (counter(gameState->board, player, SEQ_5) > 0 || nb_prise >= 10)
+        return MAX_EVAL;
+    
+    _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
+    if ( _4_ > 0)
+        return MAX_EVAL -1;
+    _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
+    _4t = counter(gameState->board, player, SEQ_4_TROUS);
+    score += SCORE_A_OPPONENT * 2 * _4t;
+    score += SCORE_A_OPPONENT * _4;
+    _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
+    score += SCORE_B_OPPONENT * (_3_ / 2);
+    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE) - _4_ - _4;
+    score += (_3 * SCORE_C_OPPONENT);
+    _2_ = counter(gameState->board, player, SEQ_2_LIBRE) / 2;
+    score += (_2_ * SCORE_D_OPPONENT);
+    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE) - _4_ - _4 - _3_ - _3;
+    score += (_2 * SCORE_E_OPPONENT);
+    score += (nb_prise * SCORE_PRISE_OPPONENT);
+    // printf("score op = %d\n", score);
+    return score;
+}
+
+int evaluate_game(const GameState *gameState){
+    const char player = gameState->currentPlayer;
+    const char opponent = adversaire(player);
+
+    int score_player = evaluation_player(gameState, player);
+    int score_opponent = evaluation_opponent(gameState, opponent);
+    return score_player - score_opponent;
+}

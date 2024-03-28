@@ -4,6 +4,7 @@
 		"optional": "c",
 		"variant": "c",
 		"stdarg.h": "c",
-		"complex": "cpp"
+		"complex": "cpp",
+		"string": "c"
 	}
 }
