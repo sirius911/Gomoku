@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/19 20:57:32 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/28 11:49:13 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,21 +111,66 @@ int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb) {
 }
 
 void print_sequences_board(char *board, const char *entete) {
-    int b2,b3,b4;
-    int w2,w3,w4;
+    int _b2_,_b2,_b3_,_b3,_b4t,_b4_,_b4;
+    int _w2_,_w2,_w3_,_w3,_w4t,_w4_,_w4;
     bool b5, w5;
-    b2 = count_sequences(board, 'B', 2);
-    b3 = count_sequences(board, 'B', 3);
-    b4 = count_sequences(board, 'B', 4);
-    b5 = (count_sequences(board, 'B', 5) > 0);
-    w2 = count_sequences(board, 'W', 2);
-    w3 = count_sequences(board, 'W', 3);
-    w4 = count_sequences(board, 'W', 4);
-    w5 = (count_sequences(board, 'W', 5) > 0);
-    print("%sBlack [2]:%d - [3]:%d = [4]:%d",entete,b2,b3,b4);
-    print(" %s", b5 ? "Winner\n":"\n");
-    print("%sWhite [2]:%d - [3]:%d = [4]:%d\n",entete,w2,w3,w4);
-    print(" %s", w5 ? "Winner\n":"\n");
+
+    _b4t = counter(board, 'B', SEQ_4_TROUS);
+    _b4_ = counter(board, 'B', SEQ_4_LIBRE);
+    _b4  = counter(board, 'B', SEQ_4_SEMI_LIBRE);
+    _b3_ = counter(board, 'B', SEQ_3_LIBRE);
+    _b3  = counter(board, 'B', SEQ_3_SEMI_LIBRE) - _b4_ - _b4;
+
+    _b2_ = counter(board, 'B', SEQ_2_LIBRE) / 2;
+    _b2  = counter(board, 'B', SEQ_2_SEMI_LIBRE) - _b4_ - _b4 - _b3_ - _b3;
+
+    _b4_ /=2;
+    _b3_ /=2;
+   
+    b5   = counter(board, 'B', SEQ_5) >= 1;
+
+    _w4t = counter(board, 'W', SEQ_4_TROUS);
+    _w4_ = counter(board, 'W', SEQ_4_LIBRE);
+    _w4  = counter(board, 'W', SEQ_4_SEMI_LIBRE);
+    _w3_ = counter(board, 'W', SEQ_3_LIBRE);
+    _w3  = counter(board, 'W', SEQ_3_SEMI_LIBRE) - _w4_ - _w4;
+
+    _w2_ = counter(board, 'W', SEQ_2_LIBRE) / 2;
+    _w2  = counter(board, 'W', SEQ_2_SEMI_LIBRE) - _w4_ - _w4 - _w3_ - _w3;
+    
+    _w4_ /=2;
+    _w3_ /=2;
+    
+    w5   = counter(board, 'W', SEQ_5) >= 1;
+
+    print("%s  _BB_ : %d -   _BBX : %d\n", entete, _b2_, _b2);
+    print("%s  _WW_ : %d -   _WWX : %d\n", entete, _w2_, _w2);
+    print("%s _BBB_ : %d -  _BBBX : %d\n", entete, _b3_, _b3);
+    print("%s _WWW_ : %d -  _WWWX : %d\n", entete, _w3_, _w3);
+    print("%s_BB_B_ : %d\n", entete, _b4t);
+    print("%s_WW_W_ : %d\n", entete, _w4t);
+    print("%s_BBBB_ : %d - _BBBBX : %d\n", entete, _b4_, _b4);
+    print("%s_WWWW_ : %d - _WWWWX : %d\n", entete, _w4_, _w4);
+    print("%sBBBBB  : %s\n", entete, b5 ? "True":"False");
+    print("%sWWWWW  : %s\n", entete, w5 ? "True":"False");
+
+    print("%s** Conclusion **\n", entete);
+    if (b5 || w5){
+        print("%svainqueur : %s\n", entete, b5? "Black":"White");
+        return;
+    }
+    if (_b4_ > 0 || _w4_ > 0){
+        print("%sAligne 4 (imparable) : %s\n", entete, (_b4_ > 0)? "Black":"white");
+        return;
+    }
+    if (_b4 > 0 || _w4 > 0){
+        print("%sDanger alignement 4 : %s\n", entete, (_b4 > 0)? "Black":"white");
+        return;
+    }
+    if (_b3_ > 0 || _w3_ > 0){
+        print("%s Attention alignement de 3 libres: %s\n", entete, (_b3_ > 0)? "Black":"white");
+        return;
+    }
 }
 
 void print_board(const char* board, const char current_player){
@@ -140,6 +185,10 @@ void print_board(const char* board, const char current_player){
 }
 
 void free_moves(Move* moves) {
-    if (moves)
+    // fprintf(stderr, "[free\n");
+    if (moves){
         free(moves);
+        moves = NULL;
+    }
+    // fprintf(stderr, "free]\n");
 }
