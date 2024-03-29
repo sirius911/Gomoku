@@ -1,0 +1,58 @@
+==1684174== 
+==1684174== HEAP SUMMARY:
+==1684174==     in use at exit: 724 bytes in 2 blocks
+==1684174==   total heap usage: 68,645,451 allocs, 68,645,449 frees, 513,596,912 bytes allocated
+==1684174== 
+==1684174== 362 bytes in 1 blocks are definitely lost in loss record 1 of 2
+==1684174==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1684174==    by 0x48602AB: proximate_moves (minmax.c:402)
+==1684174==    by 0x485FC41: play_IA (minmax.c:302)
+==1684174==    by 0x10958C: game_loop (main.c:48)
+==1684174==    by 0x1099E2: main (main.c:116)
+==1684174== 
+==1684174== 362 bytes in 1 blocks are definitely lost in loss record 2 of 2
+==1684174==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1684174==    by 0x48602AB: proximate_moves (minmax.c:402)
+==1684174==    by 0x485F8D0: minmax (minmax.c:259)
+==1684174==    by 0x485FD38: play_IA (minmax.c:308)
+==1684174==    by 0x10958C: game_loop (main.c:48)
+==1684174==    by 0x1099E2: main (main.c:116)
+==1684174== 
+==1684174== LEAK SUMMARY:
+==1684174==    definitely lost: 724 bytes in 2 blocks
+==1684174==    indirectly lost: 0 bytes in 0 blocks
+==1684174==      possibly lost: 0 bytes in 0 blocks
+==1684174==    still reachable: 0 bytes in 0 blocks
+==1684174==         suppressed: 0 bytes in 0 blocks
+==1684174== 
+==1684174== For lists of detected and suppressed errors, rerun with: -s
+==1684174== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)
+-----------------------------------------------------------------------------------------------------
+==1698638== HEAP SUMMARY:
+==1698638==     in use at exit: 724 bytes in 2 blocks
+==1698638==   total heap usage: 68,645,451 allocs, 68,645,449 frees, 513,596,912 bytes allocated
+==1698638== 
+==1698638== 362 bytes in 1 blocks are definitely lost in loss record 1 of 2
+==1698638==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1698638==    by 0x48602AB: proximate_moves (minmax.c:402)
+==1698638==    by 0x485FC41: play_IA (minmax.c:302)
+==1698638==    by 0x10958C: game_loop (main.c:48)
+==1698638==    by 0x1099E2: main (main.c:116)
+==1698638== 
+==1698638== 362 bytes in 1 blocks are definitely lost in loss record 2 of 2
+==1698638==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==1698638==    by 0x48602AB: proximate_moves (minmax.c:402)
+==1698638==    by 0x485F8D0: minmax (minmax.c:259)
+==1698638==    by 0x485FD38: play_IA (minmax.c:308)
+==1698638==    by 0x10958C: game_loop (main.c:48)
+==1698638==    by 0x1099E2: main (main.c:116)
+==1698638== 
+==1698638== LEAK SUMMARY:
+==1698638==    definitely lost: 724 bytes in 2 blocks
+==1698638==    indirectly lost: 0 bytes in 0 blocks
+==1698638==      possibly lost: 0 bytes in 0 blocks
+==1698638==    still reachable: 0 bytes in 0 blocks
+==1698638==         suppressed: 0 bytes in 0 blocks
+==1698638== 
+==1698638== For lists of detected and suppressed errors, rerun with: -s
+==1698638== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

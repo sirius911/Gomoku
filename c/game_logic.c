@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:51:51 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/24 16:10:43 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/26 13:07:17 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,42 +235,42 @@ bool isAlignment(const char *board, int x, int y, char current_player) {
     return false;
 }
 
-int count_seq_4_trous(const char *board, char player){
-    int count = 0;
-    const int nb_dir = 8;
-    int taille_seq = 6;
-    int directions[8][2] = {
-        {1, 0}, {0, 1}, {-1, 0}, {0, -1},
-        {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
-    };
+// int count_seq_4_trous(const char *board, char player){
+//     int count = 0;
+//     const int nb_dir = 8;
+//     int taille_seq = 6;
+//     int directions[8][2] = {
+//         {1, 0}, {0, 1}, {-1, 0}, {0, -1},
+//         {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
+//     };
 
-    int good[6] = {0,1,1,0,1,0}; // {-1,1,1,0,1,0}
+//     int good[6] = {0,1,1,0,1,0}; // {-1,1,1,0,1,0}
     
-    for (int y = 0; y < SIZE; ++y) {
-        for (int x = 0; x < SIZE; ++x) {
-            if (board[idx(x, y)] != player) continue;
-            for (int d = 0; d < nb_dir; d++) {
-                int *sequence = seq(board, x, y, directions[d][1], directions[d][0], player, taille_seq);
-                // Vérifie si la séquence correspond à une des séquences de "good" autorisées
-                // for (int i = 0; i < nb_good; i++) {
-                    bool match = true;
-                    for (int j = 0; j < taille_seq; j++) {
-                        if (sequence[j] != good[j]) {
-                            match = false;
-                            break;
-                        }
-                    }
-                    if (match) {
-                        count++;
-                        break;
-                    }
-                // }
-                free(sequence);
-            }
-        }
-    }
-    return count;
-}
+//     for (int y = 0; y < SIZE; ++y) {
+//         for (int x = 0; x < SIZE; ++x) {
+//             if (board[idx(x, y)] != player) continue;
+//             for (int d = 0; d < nb_dir; d++) {
+//                 int *sequence = seq(board, x, y, directions[d][1], directions[d][0], player, taille_seq);
+//                 // Vérifie si la séquence correspond à une des séquences de "good" autorisées
+//                 // for (int i = 0; i < nb_good; i++) {
+//                     bool match = true;
+//                     for (int j = 0; j < taille_seq; j++) {
+//                         if (sequence[j] != good[j]) {
+//                             match = false;
+//                             break;
+//                         }
+//                     }
+//                     if (match) {
+//                         count++;
+//                         break;
+//                     }
+//                 // }
+//                 free(sequence);
+//             }
+//         }
+//     }
+//     return count;
+// }
 
 
 // La fonction générique pour compter les séquences de pierres de taille spécifique.

@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/25 17:18:18 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/27 17:17:36 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,19 @@
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
 #define WIN_MOVE -1
+
+#define SEQ_4_LIBRE "011110"
+#define SEQ_4_SEMI_LIBRE "+11110"
+#define SEQ_4_TROUS "011010"
+#define SEQ_3_LIBRE "01110*"
+#define SEQ_3_SEMI_LIBRE "+1110*"
+#define SEQ_2_SEMI_LIBRE "011+**"
+#define SEQ_2_LIBRE "0110**"
+#define SEQ_5 "11111*"
+
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#define min(a, b) ((a) < (b) ? (a) : (b))
+
 
 extern bool DEBUG;  
 extern bool STAT;
@@ -76,12 +89,11 @@ bool is_three(const char *board, int x, int y, int dx, int dy, char player);
 bool check_double_three(char *board, int x, int y, char player);
 bool isAlignment(const char *board, int x, int y, char current_player);
 int count_sequences(const char *board, char player, int base_taille_seq);
-int count_seq_4_trous(const char *board, char player);
 
 // Prototypes des fonctions ai_logic
 void    free_gameState(GameState *game);
-int _evaluate_player(const GameState *gameState, char player);
-int _evaluate_opponent(const GameState *gameState, char opponent);
+// int _evaluate_player(const GameState *gameState, char player);
+// int _evaluate_opponent(const GameState *gameState, char opponent);
 GameState *apply_move(const GameState *original_gameState, int x, int y);
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int maxDepth);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
@@ -103,5 +115,12 @@ int compare_age(void const *a, void const *b);
 char **create_map(const char *copie_board);
 void free_map(char **map);
 int verif_sequence(int sequence, int extrem1, int extrem2);
+
+// fichiers essais.c
+int counter(const char *board, const char player, const char good[6]);
+int count_seq_4_trous(const char *board, char player);
+int evaluation_player(const GameState *gameState, const char player);
+int evaluation_opponent(const GameState *gameState, const char player);
+int evaluate_game(const GameState *gameState);
 
 #endif // GAME_H

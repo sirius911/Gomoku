@@ -1,6 +1,6 @@
 import tkinter as tk
 from constants import *
-from dialogs import EndGameDialog, CustomDialog
+from dialogs import EndGameDialog, CustomDialog, hsl_to_rgb
 from game_logic import GomokuLogic
 from tkinter import filedialog
 
@@ -96,6 +96,8 @@ class GomokuGUI:
         self.master.bind('<Control-e>', lambda event: self.switch_edition())
         self.master.bind('<Control-v>', lambda event: self.switch_print_value())
         self.master.bind('<h>', lambda event: self.help())
+        self.master.bind('<Control-h>', self.on_ctrl_h_pressed)
+        self.master.bind('<KeyRelease-Control_L>', self.clear_proximate_stones)
         self.master.bind('<b>', lambda event: self.change_color('black'))
         self.master.bind('<w>', lambda event: self.change_color('white')
                          )
@@ -103,15 +105,19 @@ class GomokuGUI:
         self.timer_label = tk.Label(master, text="0.00s")
         self.timer_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
 
-        self.draw_current_player_indicator()
-        self.update_captures_display(self.game_logic.captures)
-
         # Ajout du label pour afficher les coordonnées de la souris
-        self.mouse_coords_label = tk.Label(master, text="ici")
+        self.mouse_coords_label = tk.Label(master, text="")
         self.mouse_coords_label.place(relx=0.0, rely=1.0, x=10, y=-10, anchor="sw")
 
         # Liez l'événement de mouvement de la souris sur le canvas à la fonction update_mouse_coords
         self.canvas.bind("<Motion>", self.update_mouse_coords)
+
+        self.history_index_label = tk.Label(master, text="")
+        self.history_index_label.place(relx=1.0, rely=0.0, anchor="ne")
+        
+        self.draw_current_player_indicator()
+        self.update_captures_display(self.game_logic.captures)
+
 
     @property
     def pixel_size(self):
@@ -154,7 +160,9 @@ class GomokuGUI:
         status = CONTINUE_GAME
         while  status == CONTINUE_GAME and self.is_IA_turn():
             self.saved = False
+            self.master.config(cursor="watch")
             status,play_time = self.game_logic.play_IA()
+            self.master.config(cursor="")
             self.draw_stones()
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
@@ -192,6 +200,53 @@ class GomokuGUI:
         center_y = self.top_margin + y * self.cell_size
         self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill=color, tags=tag)
 
+    def draw_stone_proxi(self, x, y, color, tag="proxi"):
+        # Dessinez le grand cercle (pierre)
+        radius = self.cell_size // 2 - 2
+        center_x = self.margin + x * self.cell_size
+        center_y = self.top_margin + y * self.cell_size
+        self.canvas.create_oval(center_x - radius, center_y - radius, center_x + radius, center_y + radius, fill="#dcdcdc", tags=tag)
+
+        # Dessinez le petit cercle intérieur avec la couleur basée sur la valeur stratégique
+        inner_radius = radius // 3  # Taille fixe pour le cercle intérieur
+        self.canvas.create_oval(center_x - inner_radius, center_y - inner_radius, center_x + inner_radius, center_y + inner_radius, fill=color, outline=color, tags=tag)
+
+
+    def get_color_from_value(self, normalized_value):
+        """
+        Convertit une valeur normalisée (entre 0 et 1) en une couleur.
+        Utilise un spectre de couleur passant du rouge au vert, avec des nuances intermédiaires.
+        """
+        # Calcul de la teinte : 0° (rouge) à 120° (vert)
+        hue = normalized_value * 120
+        # Saturation et luminosité fixes pour des couleurs vives et éviter le blanc et le noir
+        saturation = 1.0  # Saturation à 100%
+        lightness = 0.5  # Luminosité à 50%
+        return hsl_to_rgb(hue, saturation, lightness)
+
+    def draw_proximate_stones(self):
+        proximate_moves = self.game_logic.get_proximate_moves()
+        if not proximate_moves:  # Vérifier s'il y a des mouvements
+            return
+
+        values = list(proximate_moves.values())
+        min_val, max_val = min(values), max(values)
+
+        # Dessinez chaque coup avec une couleur basée sur sa valeur normalisée
+        for (x, y), value in proximate_moves.items():
+            normalized_value = (value - min_val) / (max_val - min_val) if max_val != min_val else 0.5
+            color = self.get_color_from_value(normalized_value)
+            self.draw_stone_proxi(x, y, color, "proxi")
+
+    def on_ctrl_h_pressed(self, _):
+        if self.print_value.get() == 0:
+            self.print_value.set(1)
+        self.draw_proximate_stones()
+
+    def clear_proximate_stones(self, event=None):
+        self.print_value.set(0)
+        self.canvas.delete("proxi")  # Supprime toutes les pierres avec le tag "proxi"
+
     def blink_stone(self, x, y, color):
         self.draw_stone(x,y,color,"blink")
         self.canvas.after(500, lambda: [
@@ -201,8 +256,10 @@ class GomokuGUI:
         self.draw_stones()
 
     def help(self):
+        self.master.config(cursor="watch")
         x,y = self.game_logic.help_IA()
         self.blink_stone(x,y, self.game_logic.current_player)
+        self.master.config(cursor="")
 
     def draw_current_player_indicator(self):
         # Assurez-vous d'effacer l'indicateur précédent
@@ -230,6 +287,7 @@ class GomokuGUI:
         # Dessinez un cercle pour indiquer le joueur actuel
         self.canvas.create_oval(indicator_x - radius, indicator_y - radius, indicator_x + radius, indicator_y + radius, fill=color, tags="current_player_indicator")
         self.canvas.update()
+        self.update_history_index_display()
 
     def convert_pixel_to_grid(self, pixel_x, pixel_y):
         grid_x = (pixel_x - self.margin + self.cell_size // 2) // self.cell_size
@@ -431,7 +489,7 @@ class GomokuGUI:
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
         if self.print_value.get():
             value1, value2 = self.game_logic.value_coup(grid_x, grid_y)
-            text = f"{'Coup Gagnant' if value1 == -1 else value1}/{'Coup Gagnant' if value2 == -1 else value2} "
+            text = f"{'Coup Gagnant' if value1 == -1 else value1}  {'Coup Gagnant' if value2 == -1 else value2} = {value1-value2}"
             self.show_tooltip(f"Valeur: {text}", event.x_root, event.y_root)
         else:
             # Détruire la bulle si elle existe et l'option n'est pas activée
@@ -449,3 +507,8 @@ class GomokuGUI:
 
     def toggle_threads(self):
         self.game_logic.threads = (self.threads.get() == 1)
+
+    def update_history_index_display(self):
+        text = f"Coup N° {self.game_logic.history_index + 1} "  # +1 car les index commencent à 0
+        self.history_index_label.config(text=text)
+

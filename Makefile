@@ -5,13 +5,13 @@ UNAME_S := $(shell uname -s)
 PATH_LIB := lib/
 PATH_SRCS := c/
 
-SRC := utils.c game_logic.c minmax.c sandBox.c threads.c heuristic.c
+SRC := utils.c game_logic.c minmax.c sandBox.c threads.c heuristic.c evaluator.c
 SRCS := $(addprefix $(PATH_SRCS),$(SRC))
 OBJ := $(SRCS:.c=.o)
 
 # Paramètres par défaut pour Linux
 CC := gcc
-CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer -fPIC
+CFLAGS := -Wall -O0 -fno-omit-frame-pointer -fPIC
 # Définition des flags d'optimisation
 OPTI_FLAGS := -O3 -march=native -flto -funroll-loops
 LDFLAGS := -shared -fPIC
@@ -56,7 +56,7 @@ clean:
 re: clean
 	make all
 
-run_valgrind:
+run_valgrind: test
 	@echo "Lancement de valgrind... 🍺";
 	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
 	@if grep -q "libgame.so" leaks.txt; then \
@@ -64,5 +64,11 @@ run_valgrind:
 	else \
 		echo "No leaks of libgame.so "; \
 	fi
+
+# Règle pour compiler et exécuter le programme de test
+test: c/main.c $(TARGET)
+	$(CC) -g -fsanitize=address -Wall -Werror -Wextra -o main $(SRCS) c/main.c	
+# $(CC) $(CFLAGS) -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
+
 
 .PHONY: all build clean re opti
