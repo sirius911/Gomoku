@@ -3,6 +3,18 @@
 #include <limits.h>
 #include <float.h>
 
+void header(void){
+    for(int i=1; i <= 5; i++){
+        printf("                  %d ", i);
+    }
+    printf("\n");
+    for(int i=0; i < 5; i++){
+        printf("1 2 3 4 5 6 7 8 9 0 ");
+    }
+    printf("\n");
+    fflush();
+}
+
 GameState* init_game_state() {
     GameState *gameState = malloc(sizeof(GameState));
     if (gameState == NULL) {
@@ -36,7 +48,7 @@ void game_loop(GameState *gameState, int depth, bool debug, bool stat, bool thre
     double total_time = 0;
     struct timespec start_time, end_time, begin_game, end_game;
     Move move;
-
+    header();
     // Démarrer le chronomètre pour la partie entière
     clock_gettime(CLOCK_MONOTONIC, &begin_game);
     while (!game_over(gameState, &winner)) {
@@ -69,7 +81,7 @@ void game_loop(GameState *gameState, int depth, bool debug, bool stat, bool thre
 
         // write(1,&gameState->currentPlayer, 1);
         printf("%c.", gameState->currentPlayer);
-        // fflush(stdout);
+        fflush(stdout);
         gameState->currentPlayer = adversaire(gameState->currentPlayer);
         nb_coup++;
     }
