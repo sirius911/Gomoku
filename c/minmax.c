@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/29 14:34:30 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/29 16:39:58 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
     new_gameState->captures[1] = capture1;
     int index = idx(x, y);
     new_gameState->board[index] = original_gameState->currentPlayer;
-    new_gameState->currentPlayer = original_gameState->currentPlayer;
+    new_gameState->currentPlayer = adversaire(original_gameState->currentPlayer);
 
     Move *captured = check_capture(new_gameState->board, x, y);
     if (captured){
@@ -96,7 +96,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
     return new_gameState; // Retourne la nouvelle copie avec le mouvement appliqué
 }
 
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row, int originalDepth) {
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row) {
     char winner = '0';
     if (depth == 0 || game_over(gameState, &winner)) {
         bool coup_gagnant = false;
@@ -116,11 +116,11 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-    Move *moves = proximate_moves(gameState, &move_count, maximizingPlayer ? gameState->currentPlayer : adversaire(gameState->currentPlayer), topLeftX, topLeftY, bottomRightX, bottomRightY);
+	Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
 
     for (int i = 0; i < move_count; i++) {
         GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
-        EvalResult eval = minmax(newGameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, originalDepth);
+        EvalResult eval = minmax(newGameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
         free_gameState(newGameState); // Libération de l'instance de GameState
         if (maximizingPlayer && eval.coup_gagnant) {
             // Si on trouve un coup gagnant pour le joueur maximisant, on choisit immédiatement ce coup.
@@ -163,8 +163,10 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
         EvalResult result;
         print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
         // printf("\n*\n");
-        result = minmax(gameState, depth, MIN_EVAL, MAX_EVAL, true, moves[i].col, moves[i].row, depth);
-        print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
+		GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
+		result = minmax(newGameState, (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false, moves[i].col, moves[i].row);
+		free_gameState(newGameState); // Libération de l'instance de GameState
+		print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
             moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore,
             result.coup_gagnant? "Coup gagnant":"", result.coup_perdant? "Coup perdant":"");
         print("\n---------------\n");
