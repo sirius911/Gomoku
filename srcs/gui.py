@@ -105,15 +105,19 @@ class GomokuGUI:
         self.timer_label = tk.Label(master, text="0.00s")
         self.timer_label.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
 
-        self.draw_current_player_indicator()
-        self.update_captures_display(self.game_logic.captures)
-
         # Ajout du label pour afficher les coordonnées de la souris
-        self.mouse_coords_label = tk.Label(master, text="ici")
+        self.mouse_coords_label = tk.Label(master, text="")
         self.mouse_coords_label.place(relx=0.0, rely=1.0, x=10, y=-10, anchor="sw")
 
         # Liez l'événement de mouvement de la souris sur le canvas à la fonction update_mouse_coords
         self.canvas.bind("<Motion>", self.update_mouse_coords)
+
+        self.history_index_label = tk.Label(master, text="")
+        self.history_index_label.place(relx=1.0, rely=0.0, anchor="ne")
+        
+        self.draw_current_player_indicator()
+        self.update_captures_display(self.game_logic.captures)
+
 
     @property
     def pixel_size(self):
@@ -283,6 +287,7 @@ class GomokuGUI:
         # Dessinez un cercle pour indiquer le joueur actuel
         self.canvas.create_oval(indicator_x - radius, indicator_y - radius, indicator_x + radius, indicator_y + radius, fill=color, tags="current_player_indicator")
         self.canvas.update()
+        self.update_history_index_display()
 
     def convert_pixel_to_grid(self, pixel_x, pixel_y):
         grid_x = (pixel_x - self.margin + self.cell_size // 2) // self.cell_size
@@ -502,3 +507,8 @@ class GomokuGUI:
 
     def toggle_threads(self):
         self.game_logic.threads = (self.threads.get() == 1)
+
+    def update_history_index_display(self):
+        text = f"Coup N° {self.game_logic.history_index + 1} "  # +1 car les index commencent à 0
+        self.history_index_label.config(text=text)
+
