@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/24 16:43:38 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/25 17:07:23 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,20 +41,9 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		extrem2++;
 		index++;
 	}
-	if (sequence >= 5)
+	if ((sequence = verif_sequence(sequence, extrem1, extrem2)) == WIN_MOVE)
 		return WIN_MOVE;
-	if (sequence == 2 && (extrem1 + extrem2) >= 3)
-		sequence = 10;
-	else if (sequence == 3 && (extrem1 + extrem2) >= 2)
-		sequence = 50;
-	else if (sequence == 4 && (extrem1 || extrem2))
-	{
-		if (extrem1 && extrem2)
-			sequence = 300;
-		else
-			sequence = 200;
-	}
-	score_total = sequence;
+	score_total += sequence;
 
 	// VERTICALLY
 	sequence = 0, index = idx(move->col, move->row);
@@ -76,19 +65,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		extrem2++;
 		index += SIZE;
 	}
-	if (sequence >= 5)
+	if ((sequence = verif_sequence(sequence, extrem1, extrem2)) == WIN_MOVE)
 		return WIN_MOVE;
-	if (sequence == 2 && (extrem1 + extrem2) >= 3)
-		sequence = 10;
-	else if (sequence == 3 && (extrem1 + extrem2) >= 2)
-		sequence = 50;
-	else if (sequence == 4 && (extrem1 || extrem2))
-	{
-		if (extrem1 && extrem2)
-			sequence = 300;
-		else
-			sequence = 200;
-	}
 	score_total += sequence;
 
 	// DIAGONALLY (from top left to bottom right)
@@ -119,19 +97,8 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		row++;
 		index = (index + SIZE) + 1;
 	}
-	if (sequence >= 5)
+	if ((sequence = verif_sequence(sequence, extrem1, extrem2)) == WIN_MOVE)
 		return WIN_MOVE;
-	if (sequence == 2 && (extrem1 + extrem2) >= 3)
-		sequence = 10;
-	else if (sequence == 3 && (extrem1 + extrem2) >= 2)
-		sequence = 50;
-	else if (sequence == 4 && (extrem1 || extrem2))
-	{
-		if (extrem1 && extrem2)
-			sequence = 300;
-		else
-			sequence = 200;
-	}
 	score_total += sequence;
 
 	// DIAGONALLY (from top right to bottom left)
@@ -166,21 +133,9 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 		col--;
 		index = (index + SIZE) - 1;
 	}
-	if (sequence >= 5)
+	if ((sequence = verif_sequence(sequence, extrem1, extrem2)) == WIN_MOVE)
 		return WIN_MOVE;
-	if (sequence == 2 && (extrem1 + extrem2) >= 3)
-		sequence = 10;
-	else if (sequence == 3 && (extrem1 + extrem2) >= 2)
-		sequence = 50;
-	else if (sequence == 4 && (extrem1 || extrem2))
-	{
-		if (extrem1 && extrem2)
-			sequence = 300;
-		else
-			sequence = 200;
-	}
 	score_total += sequence;
-
 	return score_total;
 }
 
@@ -280,4 +235,21 @@ void free_map(char **map){
 		free(map[i]);
 	}
 	free(map);
+}
+
+int verif_sequence(int sequence, int extrem1, int extrem2) {
+	if (sequence >= 5)
+		return WIN_MOVE;
+	if (sequence == 2 && (extrem1 + extrem2) >= 3)
+		return 10;
+	else if (sequence == 3 && (extrem1 + extrem2) >= 2)
+		return 50;
+	else if (sequence == 4 && (extrem1 || extrem2))
+	{
+		if (extrem1 && extrem2)
+			return 300;
+		else
+			return 200;
+	}
+	return 0;
 }
