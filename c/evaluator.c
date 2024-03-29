@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   essais.c                                           :+:      :+:    :+:   */
+/*   evaluator.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 12:50:04 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/28 10:57:17 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/29 19:32:44 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,11 +114,13 @@ int evaluation_player(const GameState *gameState, const char player){
         return MAX_EVAL;
     
     _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
-    if ( _4_ > 0)
-        return MAX_EVAL -1;
+    score += _4_ * SCORE_A_PLAYER;
+    // if ( _4_ > 0)
+    //     return MAX_EVAL -1;
     _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
+    score += SCORE_A_PLAYER * _4;
     _4t = counter(gameState->board, player, SEQ_4_TROUS);
-    score += SCORE_A_PLAYER * (_4 + _4t);
+    score += SCORE_A_PLAYER * _4t;
     _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
     score += SCORE_B_PLAYER * (_3_ / 2);
     _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE) - _4_ - _4;
@@ -148,10 +150,10 @@ int evaluation_opponent(const GameState *gameState, const char player){
     
     _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
     if ( _4_ > 0)
-        return MAX_EVAL -1;
+        return MAX_EVAL;
     _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
     _4t = counter(gameState->board, player, SEQ_4_TROUS);
-    score += SCORE_A_OPPONENT * 2 * _4t;
+    score += SCORE_A_OPPONENT * (2 * _4t);
     score += SCORE_A_OPPONENT * _4;
     _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
     score += SCORE_B_OPPONENT * (_3_ / 2);
@@ -162,7 +164,6 @@ int evaluation_opponent(const GameState *gameState, const char player){
     _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE) - _4_ - _4 - _3_ - _3;
     score += (_2 * SCORE_E_OPPONENT);
     score += (nb_prise * SCORE_PRISE_OPPONENT);
-    // printf("score op = %d\n", score);
     return score;
 }
 

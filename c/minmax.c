@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/29 16:39:58 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/03/29 19:43:29 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,43 +23,6 @@ void    free_gameState(GameState *game) {
         game = NULL;
     }
 }
-
-// int _evaluate_player(const GameState *gameState, char player) {
-//     int score = 0;
-//     int num_player =( player == 'B')? 0:1;
-//     if (count_sequences(gameState->board, player, 4) >= 1 || 
-//         count_sequences(gameState->board, player, 5) > 0 ||
-//         gameState->captures[num_player] >= 10)
-//         return MAX_EVAL;
-//     /*
-//         score += count(board, player, SEQ_2_SE)
-//     */
-//     score += count_sequences(gameState->board, player, 2) * 10;
-//     score += count_sequences(gameState->board, player, 3) * 50;
-//     score += count_sequences(gameState->board, player, 4) *10000;
-
-//     score += count_seq_4_trous(gameState->board, player) * 400;
-
-//     score += gameState->captures[num_player] * 100 ;
-//     return score;
-// }
-
-// int _evaluate_opponent(const GameState *gameState, char opponent) {
-//     int score = 0;
-//     int num_player =( opponent == 'B')? 0:1;
-//     if (count_sequences(gameState->board, opponent, 5) > 0 ||
-//         gameState->captures[num_player] >= 10)
-//         return MAX_EVAL;
-
-//     score += count_sequences(gameState->board, opponent, 2) * 20;
-//     score += count_sequences(gameState->board, opponent, 3) * 100;
-//     score += count_sequences(gameState->board, opponent, 4) * 100000;
-
-//     score += count_seq_4_trous(gameState->board, opponent) * 500;
-
-//     score += gameState->captures[num_player] * 50 ;
-//     return score;
-// }
 
 GameState *apply_move(const GameState *original_gameState, int x, int y) {
     int capture0 = original_gameState->captures[0];
@@ -97,8 +60,9 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
 }
 
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row) {
+    // print("On rentre dans min max avec Maximizing = %s et current_player = %c\n", (maximizingPlayer)?"True":"False", gameState->currentPlayer);
     char winner = '0';
-    if (depth == 0 || game_over(gameState, &winner)) {
+    if (game_over(gameState, &winner) || depth == 0) {
         bool coup_gagnant = false;
         bool coup_perdant = false;
         if (winner != '0') {
@@ -107,8 +71,13 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             else
                 coup_perdant = true;
         }
-        int score = evaluate_game(gameState);
-        return (EvalResult){.scoreDiff = score, .coup = (Move){col, row, score}, .coup_gagnant = coup_gagnant, .coup_perdant = coup_perdant};
+        // print("Eval - > \n", gameState->currentPlayer, col, row);
+        int score_player = evaluation_player(gameState, gameState->currentPlayer);
+        int score_opponent = evaluation_opponent(gameState, adversaire(gameState->currentPlayer));
+        int score = score_player - score_opponent;
+        // printf("\t\tscore %c = %d   %c = %d --> %d\n",gameState->currentPlayer, score_player, adversaire(gameState->currentPlayer), score_opponent, score);
+        return (EvalResult){.scoreDiff = score, .coup = (Move){col, row, score},
+         .coup_gagnant = coup_gagnant, .coup_perdant = coup_perdant, .playerScore = score_player, .opponentScore = score_opponent};
     }
 
     int move_count;
@@ -119,6 +88,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
 	Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
 
     for (int i = 0; i < move_count; i++) {
+        // print("\t%c(%d,%d)\n", gameState->currentPlayer,moves[i].col, moves[i].row );
         GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
         EvalResult eval = minmax(newGameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
         free_gameState(newGameState); // Libération de l'instance de GameState
@@ -162,9 +132,9 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
     for (int i = 0; i < move_count; i++) {
         EvalResult result;
         print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
-        // printf("\n*\n");
 		GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
-		result = minmax(newGameState, (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false, moves[i].col, moves[i].row);
+        // analyse(newGameState,true);
+        result = minmax(newGameState, (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false, moves[i].col, moves[i].row);
 		free_gameState(newGameState); // Libération de l'instance de GameState
 		print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
             moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore,
@@ -202,12 +172,12 @@ void analyse(GameState *gameState, bool debug) {
         int move_count;
         Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
         
-        print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
-        print_sequences_board(gameState->board, "");
+        // print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
+        // print_sequences_board(gameState->board, "");
         for (int i = 0; i < move_count; i++) {
             print("(%d, %d) ", moves[i].col, moves[i].row);
         }
-        print("\n");
+        // print("\n");
         free_moves(moves);
     } else {
         print("Aucun élément non vide trouvé sur le plateau.\n");
@@ -295,6 +265,7 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
         move->col=9;
         move->row=9;
         *move_count = 1;
+        free(copie_board);
         return move;
     }
     // on recupere toutes les cases X
@@ -327,38 +298,16 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
     }
 	fin_boucles:
 	qsort(moves, (size_t)count, sizeof(Move), compare_age);
-	if (DEBUG){
-        for (int i = 0; i<count2;i++) {
-            print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
-        }
-    }
-    *move_count = count2;
-    // if (copie_board)
-    free(copie_board);
+	// if (DEBUG){
+    //     for (int i = 0; i<count2;i++) {
+    //         print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
+    //     }
+    // }
+    if (count2 < 8)
+        *move_count = count2;
+    else
+        *move_count = 8;
+    if (copie_board)
+        free(copie_board);
     return moves;
 }
-
-// Move* generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2) {
-//     /*
-//         return a array of struc Move with possible moves in (x1,y1)(x2,y2)
-//     */
-//     int maxMoves = abs(x2 - x1 + 1) * abs(y2 - y1 + 1);
-//     Move *moves = (Move*) malloc(maxMoves * sizeof(Move));
-//     int count = 0;
-
-//     for (int row = y1; row <= y2; ++row) {
-//         for (int col = x1; col <= x2; ++col) {
-//             int index = idx(col, row);
-//             if (board[index] == '0' && ! check_double_three(board, col, row, current_player)) { // '0' représente une case vide
-//                 if (count < MAX_MOVES) {
-//                     moves[count].col = col;
-//                     moves[count].row = row;
-//                     count++;
-//                 }
-//             }
-//         }
-//     }
-
-//     *move_count = count;
-//     return moves;
-// }
