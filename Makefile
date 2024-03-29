@@ -67,8 +67,8 @@ run_valgrind: test
 
 # Règle pour compiler et exécuter le programme de test
 test: c/main.c $(TARGET)
-	$(CC) -g -fsanitize=address -Wall -Werror -Wextra -o main $(SRCS) c/main.c	
-# $(CC) $(CFLAGS) -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
+# $(CC) -g -fsanitize=address -Wall -o main $(SRCS) c/main.c	
+	$(CC) $(CFLAGS) -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
 
 
 .PHONY: all build clean re opti

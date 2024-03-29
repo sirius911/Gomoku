@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/27 17:17:36 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/29 13:49:24 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ char *put(char *board, char c, int x, int y);
 int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb);
 void print_sequence(const int *seq, int lenght);
 void print_sequences_board(char *board, const char *entete);
-void print_board(const char *board, const char current_player);
+// void print_board(const char *board, const char current_player);
 void free_moves(Move *moves);
 
 // Prototypes des fonctions game_logic

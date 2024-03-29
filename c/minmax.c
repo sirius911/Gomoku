@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/29 11:24:29 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/29 14:14:35 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,6 +293,7 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
         move->col=9;
         move->row=9;
         *move_count = 1;
+        free(copie_board);
         return move;
     }
     // on recupere toutes les cases X
@@ -330,9 +331,9 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
             print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
         }
     }
-    *move_count = count2;
-    // if (copie_board)
-    free(copie_board);
+    *move_count = 8;
+    if (copie_board)
+        free(copie_board);
     return moves;
 }
 
