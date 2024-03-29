@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/28 11:49:13 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/29 13:49:15 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,16 +173,16 @@ void print_sequences_board(char *board, const char *entete) {
     }
 }
 
-void print_board(const char* board, const char current_player){
-	print("Current player = %c\n", current_player);
-	for (int i = 0; board[i]; i++)
-	{
-		if (i % SIZE == 0)
-			print("\n");
-		print("%c ", board[i]);
-	}
-	print("\n\n");
-}
+// void print_board(const char* board, const char current_player){
+// 	print("Current player = %c\n", current_player);
+// 	for (int i = 0; board[i]; i++)
+// 	{
+// 		if (i % SIZE == 0)
+// 			print("\n");
+// 		print("%c ", board[i]);
+// 	}
+// 	print("\n\n");
+// }
 
 void free_moves(Move* moves) {
     // fprintf(stderr, "[free\n");

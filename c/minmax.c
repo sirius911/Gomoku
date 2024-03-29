@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/29 19:43:29 by clorin           ###   ########.fr       */
+/*   Updated: 2024/03/29 19:46:37 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,6 +265,7 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
         move->col=9;
         move->row=9;
         *move_count = 1;
+        free(copie_board);
         free(copie_board);
         return move;
     }

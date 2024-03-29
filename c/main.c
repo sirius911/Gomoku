@@ -12,7 +12,7 @@ void header(void){
         printf("1 2 3 4 5 6 7 8 9 0 ");
     }
     printf("\n");
-    fflush();
+    fflush(stdout);
 }
 
 GameState* init_game_state() {
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     bool debug = false; // Débogage désactivé par défaut
     int opt;
 
-    while ((opt = getopt(argc, argv, "i:td:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:td")) != -1) {
         switch (opt) {
             case 'i':
                 ia_level = atoi(optarg);
