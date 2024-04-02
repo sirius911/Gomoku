@@ -1,6 +1,6 @@
 # constants.py
 
-VERSION = "v3.6c"
+VERSION = "v3.7c"
 
 INVALID_MOVE = {}
 
