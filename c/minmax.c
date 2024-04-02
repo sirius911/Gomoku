@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/29 19:46:37 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/02 10:15:58 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,16 +65,39 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
     if (game_over(gameState, &winner) || depth == 0) {
         bool coup_gagnant = false;
         bool coup_perdant = false;
+        int score,score_player,score_opponent;
         if (winner != '0') {
-            if (gameState->currentPlayer == winner)
-                coup_gagnant = true;
-            else
-                coup_perdant = true;
-        }
-        // print("Eval - > \n", gameState->currentPlayer, col, row);
-        int score_player = evaluation_player(gameState, gameState->currentPlayer);
-        int score_opponent = evaluation_opponent(gameState, adversaire(gameState->currentPlayer));
-        int score = score_player - score_opponent;
+            if (maximizingPlayer){
+                if (gameState->currentPlayer == winner)
+                    coup_gagnant = true;
+                else
+                    coup_perdant = true;
+            } else {
+                if (gameState->currentPlayer == winner)
+                    coup_perdant = true;
+                else
+                    coup_gagnant = true;
+            }
+            
+            // if (maximizingPlayer){
+            //     score = INT_MAX - depth; // Favoriser les victoires plus rapides
+            //     score_player = INT_MAX - depth;
+            //     score_opponent = INT_MIN + depth;
+                
+            // } else {
+            //     score = INT_MIN + depth; // La pénalité est moindre pour les défaites tardives
+            //     score_player = INT_MIN + depth;
+            //     score_opponent = INT_MAX - depth;
+                
+            // }
+        } 
+        // else {
+            // print("Eval - > \n", gameState->currentPlayer, col, row);
+            score_player = evaluation_player(gameState, gameState->currentPlayer);
+            score_opponent = evaluation_opponent(gameState, adversaire(gameState->currentPlayer));
+            score = score_player - score_opponent;
+        // }
+        
         // printf("\t\tscore %c = %d   %c = %d --> %d\n",gameState->currentPlayer, score_player, adversaire(gameState->currentPlayer), score_opponent, score);
         return (EvalResult){.scoreDiff = score, .coup = (Move){col, row, score},
          .coup_gagnant = coup_gagnant, .coup_perdant = coup_perdant, .playerScore = score_player, .opponentScore = score_opponent};
@@ -265,7 +288,6 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
         move->col=9;
         move->row=9;
         *move_count = 1;
-        free(copie_board);
         free(copie_board);
         return move;
     }
