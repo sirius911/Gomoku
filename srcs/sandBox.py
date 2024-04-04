@@ -124,7 +124,7 @@ def graph(tab_time, coups, nb_coup, threads, fileName):
 
 def play_game(game_logic, filepath, log_file, save):
     if filepath is None:
-        filepath = "Normale"
+        filepath = f"Normale{game_logic.ia_level}"
     result = CONTINUE_GAME
     temps_total = 0
     nb_coup = 0
@@ -157,7 +157,7 @@ def play_game(game_logic, filepath, log_file, save):
     if log_file is not None:
         csv_file = file_name(log_file, "csv")
         log_file = file_name(log_file, "log")
-        gom_file = file_game(log_file, "gom")
+        gom_file = file_game(filepath, "gom")
 
         texte = (f"Temps moyen pour une partie de {nb_coup} coups (ia={game_logic.ia_level}) Threads={game_logic.threads} => {moyenne:.02f} s/coup Max = {max_time:.02f}s Min = {min_time:.02f}s durée partie = {play_time:.02f}s\n")
         with open(log_file, 'a') as file:

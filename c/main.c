@@ -79,7 +79,6 @@ void game_loop(GameState *gameState, int depth, bool debug, bool stat, bool thre
         if (coup_time < min_time) min_time = coup_time;
         if (coup_time > max_time) max_time = coup_time;
 
-        // write(1,&gameState->currentPlayer, 1);
         printf("%c.", gameState->currentPlayer);
         fflush(stdout);
         gameState->currentPlayer = adversaire(gameState->currentPlayer);

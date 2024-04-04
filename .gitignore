@@ -164,3 +164,6 @@ tmp
 libgame.dylib
 c/*.o
 *.csv
+main.dSYM/Contents/Resources/Relocations/x86_64/main.yml
+main
+main.dSYM/Contents/Info.plist
