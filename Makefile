@@ -11,7 +11,7 @@ OBJ := $(SRCS:.c=.o)
 
 # Paramètres par défaut pour Linux
 CC := gcc
-CFLAGS := -Wall -O0 -fno-omit-frame-pointer -fPIC
+CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer -fPIC
 # Définition des flags d'optimisation
 OPTI_FLAGS := -O3 -march=native -flto -funroll-loops
 LDFLAGS := -shared -fPIC
@@ -68,7 +68,7 @@ run_valgrind: test
 # Règle pour compiler et exécuter le programme de test
 test: c/main.c $(TARGET)
 # $(CC) -g -fsanitize=address -Wall -o main $(SRCS) c/main.c	
-	$(CC) $(CFLAGS) -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
+	$(CC) $(CFLAGS) -g -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
 
 
 .PHONY: all build clean re opti
