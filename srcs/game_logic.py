@@ -82,7 +82,7 @@ class GomokuLogic:
         
         gameState = self.getGameState()
         # if self.debug:
-        self.libgame.analyse(gameState, self.debug)
+        # self.libgame.analyse(gameState, self.debug)
         start_time = time.time()
         if self.threads:
             self.libgame.play_IA_threads.restype = Move
@@ -118,7 +118,7 @@ class GomokuLogic:
             best_move = self.libgame.play_IA(gameState, self.ia_level, self.debug, self.stat)
             
         return best_move.col,best_move.row
-    
+
     def check_win(self):
         self.libgame.game_over.argtypes = [ctypes.POINTER(GameState), ctypes.POINTER(ctypes.c_char)]
         self.libgame.game_over.restype = ctypes.c_bool

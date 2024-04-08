@@ -26,13 +26,13 @@ GameState *copy_game_state(const GameState *src) {
         exit(EXIT_FAILURE);
     }
     *dst = *src; // Copie superficielle des champs simples
-    dst->board = malloc(SIZE * SIZE * sizeof(char));
-    if (!dst->board) {
-        perror("Failed to allocate memory for board copy");
-        free(dst);
-        exit(EXIT_FAILURE);
-    }
-    memcpy(dst->board, src->board, SIZE * SIZE * sizeof(char)); // Copie profonde du plateau
+    init_board(dst->board);
+    // if (!dst->board) {
+    //     perror("Failed to allocate memory for board copy");
+    //     free(dst);
+    //     exit(EXIT_FAILURE);
+    // }
+    strcpy(dst->board, src->board); // Copie profonde du plateau
     return dst;
 }
 

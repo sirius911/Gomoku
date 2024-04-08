@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/08 12:54:23 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/08 17:29:04 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ typedef struct {
 } EvalResult;
 
 typedef struct GameState {
-    char *board;
+    char board[SIZE * SIZE + 1];
     int  captures[2];
     char currentPlayer;
 } GameState;
@@ -81,12 +81,13 @@ void print_sequence(const int *seq, int lenght);
 void print_sequences_board(char *board, const char *entete);
 // void print_board(const char *board, const char current_player);
 void free_moves(Move *moves);
+void init_board(char *board);
 
 // Prototypes des fonctions game_logic
 void findBoxElements(const char *board, int *topLeftX, int *topLeftY, int *bottomRightX, int *bottomRightY);
 bool game_over(const GameState *gameState, char *winner);
 Move *check_capture(const char* board, int x, int y);
-char *del_captured(char *board, Move *captured);
+void del_captured(char *board, Move *captured);
 bool is_three(const char *board, int x, int y, int dx, int dy, char player);
 bool check_double_three(char *board, int x, int y, char player);
 bool isAlignment(const char *board, int x, int y, char current_player);

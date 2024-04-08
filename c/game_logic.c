@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game_logic.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:51:51 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/26 13:07:17 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/08 17:51:44 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,20 +55,24 @@ void findBoxElements(const char *board, int *topLeftX, int *topLeftY, int *botto
 
 bool game_over(const GameState *gameState, char *winner) {
     // captures
+    fprintf(stderr, "1\n");
     if (gameState->captures[0] >= 10){
         print("B gagne par capture\n");
         *winner = 'B';
         return true;
     }
+    fprintf(stderr, "2\n");
     if (gameState->captures[1] >= 10){
         print("W gagne par capture\n");
         *winner = 'W';
         return true;
     }
+    fprintf(stderr, "3\n");
     // Alignement   
     for (int x = 0; x < SIZE; ++x) {
         for (int y = 0; y < SIZE; ++y) {
             char current_player = gameState->board[idx(x, y)];
+            fprintf(stderr, "%c\n", current_player);
             if (current_player != '0' && isAlignment(gameState->board, x, y, current_player)) {
                 *winner = current_player;
                 print("Un alignement gagnant a été trouvé pour %c\n", *winner);
@@ -77,6 +81,7 @@ bool game_over(const GameState *gameState, char *winner) {
         }
     }
 
+    fprintf(stderr, "4\n");
     // Vérifiez si le plateau est entièrement rempli pour le match nul
     for (int i = 0; i < SIZE * SIZE; ++i) {
         if (gameState->board[i] == '0')
@@ -85,6 +90,7 @@ bool game_over(const GameState *gameState, char *winner) {
     print("Match null le plateau est plein!\n");
     *winner = 'N';
     return true;
+    fprintf(stderr, "5\n");
 }
 
 
@@ -141,13 +147,12 @@ Move *check_capture(const char* board, int x, int y) {
     return NULL;
 }
 
-char *del_captured(char *board, Move *captured) {
-    if (!board || !captured) return board;
+void del_captured(char *board, Move *captured) {
+    if (!board || !captured) return ;
     int index1 = idx(captured[0].col, captured[0].row);
     int index2 = idx(captured[1].col, captured[1].row);
     board[index1] = '0'; 
     board[index2] = '0';
-    return board;
 }
 
 bool is_three(const char *board, int x, int y, int dx, int dy, char player) {

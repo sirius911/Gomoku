@@ -22,12 +22,12 @@ GameState* init_game_state() {
         exit(EXIT_FAILURE);
     }
 
-    gameState->board = malloc(SIZE * SIZE * sizeof(char) + 1);
-    if (gameState->board == NULL) {
-        perror("Failed to allocate memory for board");
-        free(gameState);
-        exit(EXIT_FAILURE);
-    }
+    init_board(gameState->board)
+    // if (gameState->board == NULL) {
+    //     perror("Failed to allocate memory for board");
+    //     free(gameState);
+    //     exit(EXIT_FAILURE);
+    // }
 
     int i = 0;
     for (i = 0; i < SIZE * SIZE; i++) {

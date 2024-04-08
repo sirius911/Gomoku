@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/04/08 14:33:14 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/08 17:28:35 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@ void free_gameState(GameState *game)
 {
     if (game)
     {
-        if (game->board)
-            free(game->board);
+        // if (game->board)
+        //     free(game->board);
         free(game);
         game = NULL;
     }
@@ -37,14 +37,13 @@ GameState *apply_move(const GameState *original_gameState, int x, int y)
         fprintf(stderr, "Allocation de mémoire échouée\n");
         exit(EXIT_FAILURE);
     }
-    char *new_board = malloc(SIZE * SIZE + 1); // Alloue de la mémoire pour la nouvelle copie
-    if (new_board == NULL)
-    {
-        fprintf(stderr, "Allocation de mémoire échouée\n");
-        exit(EXIT_FAILURE);
-    }
-    strcpy(new_board, original_gameState->board); // Copie l'original dans la nouvelle copie
-    new_gameState->board = new_board;
+    // if (new_board == NULL)
+    // {
+    //     fprintf(stderr, "Allocation de mémoire échouée\n");
+    //     exit(EXIT_FAILURE);
+    // }
+    strcpy(new_gameState->board, original_gameState->board); // Copie l'original dans la nouvelle copie
+    // new_gameState->board = new_board;
     new_gameState->captures[0] = capture0;
     new_gameState->captures[1] = capture1;
     int index = idx(x, y);
@@ -54,7 +53,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y)
     Move *captured = check_capture(new_gameState->board, x, y);
     if (captured)
     {
-        new_gameState->board = del_captured(new_gameState->board, captured);
+        del_captured(new_gameState->board, captured);
         if (original_gameState->currentPlayer == 'B')
             new_gameState->captures[0] += 2;
         else
@@ -120,7 +119,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
-    int best_move_stat = 0;
+    // int best_move_stat = 0;
 
     for (int i = 0; i < move_count; i++)
     {
@@ -140,7 +139,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             {
                 bestEval = eval;
                 bestEval.coup = moves[i];
-                best_move_stat = i;
+                // best_move_stat = i;
             }
             alpha = (alpha > eval.scoreDiff) ? alpha : eval.scoreDiff;
         }
@@ -150,7 +149,7 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             {
                 bestEval = eval;
                 bestEval.coup = moves[i];
-                best_move_stat = i;
+                // best_move_stat = i;
             }
             beta = (beta < eval.scoreDiff) ? beta : eval.scoreDiff;
         }
@@ -189,7 +188,7 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat)
         if (f == NULL)
             exit(1);
     }
-    int best_move_stat = 0;
+    // int best_move_stat = 0;
 
     print_stat("\n#\n");
     for (int i = 0; i < move_count; i++)
@@ -208,7 +207,7 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat)
         {
             best_score = result.scoreDiff;
             best_move = moves[i];
-            best_move_stat = i;
+            // best_move_stat = i;
             print("Break coup gagnant\n");
             break;
         }
@@ -216,7 +215,7 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat)
         {
             best_score = result.scoreDiff;
             best_move = moves[i];
-            best_move_stat = i;
+            // best_move_stat = i;
             print("*=* Meilleur coup pour IA *=*\n");
         }
         print("\n");
@@ -312,12 +311,12 @@ Move *proximate_moves(GameState *gameState, int *move_count, const char current_
         XXX
     */
     int count = 0;
-    char *copie_board = malloc(SIZE * SIZE + 1); // Alloue de la mémoire pour une copie
-    if (copie_board == NULL)
-    {
-        fprintf(stderr, "Allocation de mémoire échouée\n");
-        exit(EXIT_FAILURE);
-    }
+    char copie_board[SIZE * SIZE + 1]; // Alloue de la mémoire pour une copie
+    // if (copie_board == NULL)
+    // {
+    //     fprintf(stderr, "Allocation de mémoire échouée\n");
+    //     exit(EXIT_FAILURE);
+    // }
     strcpy(copie_board, gameState->board); // Copie l'original dans la nouvelle copie
     int directions[8][2] = {
         {-1, -1}, {0, -1}, {+1, -1}, {-1, 0}, {+1, 0}, {-1, +1}, {0, +1}, {+1, +1}};
@@ -353,14 +352,14 @@ Move *proximate_moves(GameState *gameState, int *move_count, const char current_
         move->col = 9;
         move->row = 9;
         *move_count = 1;
-        free(copie_board);
+        // free(copie_board);
         return move;
     }
     // on recupere toutes les cases X
     Move *moves = (Move *)malloc(count * sizeof(Move));
     if (moves == NULL)
     {
-        free(copie_board);
+        // free(copie_board);
         fprintf(stderr, "Allocation de mémoire échouée\n");
         return NULL;
     }
@@ -390,9 +389,9 @@ Move *proximate_moves(GameState *gameState, int *move_count, const char current_
             }
         }
     }
-fin_boucles:
+    fin_boucles:
     qsort(moves, (size_t)count, sizeof(Move), compare_score);
-    // if (current_player == 'W'){
+    // if (DEBUG){
     //     for (int i = 0; i<count2;i++) {
     //         fprintf(stderr, "score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
     //     }
@@ -402,7 +401,7 @@ fin_boucles:
     // else
     //     *move_count = 8;
     *move_count = count2;
-    if (copie_board)
-        free(copie_board);
+    // if (copie_board)
+        // free(copie_board);
     return moves;
 }

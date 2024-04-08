@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:50:02 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/29 13:49:15 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/08 17:32:06 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ int *seq(const char *board, int x, int y, int dx, int dy, char player, int nb) {
     */
 
     // Allocation dynamique du tableau pour stocker la séquence
-    int *sequence = (int *)malloc(nb * sizeof(int));
+    int *sequence = (int *)malloc((nb) * sizeof(int));
     if (sequence == NULL) {
         fprintf(stderr, "Erreur d'allocation mémoire\n");
         return NULL; // Retourne NULL en cas d'échec de l'allocation
@@ -191,4 +191,11 @@ void free_moves(Move* moves) {
         moves = NULL;
     }
     // fprintf(stderr, "free]\n");
+}
+
+void init_board(char *board){
+    board[SIZE * SIZE] = '\0';
+    for (int i=0;i<(SIZE*SIZE);i++) {
+        board[i] = '0';
+    }
 }
