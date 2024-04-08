@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/05 11:56:38 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/08 12:54:23 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 #define MIN_EVAL INT_MIN
 #define WIN_MOVE -1
 
-#define FILENAME_STAT "stats/level1.csv"
+#define FILENAME_STAT "stats/to_rm.csv"
 
 #define SEQ_4_LIBRE "011110"
 #define SEQ_4_SEMI_LIBRE "+11110"

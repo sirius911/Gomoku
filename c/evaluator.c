@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 12:50:04 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/04 18:51:32 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/08 14:28:29 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,13 @@ int counter(const char *board, const char player, const char good[6]){
 //     return counter(board, player, SEQ_4_TROUS);
 // }
 
+#define SCORE_4 2500
+#define SCORE_3 1200
+#define SCORE_2 500
+#define SCORE_PEN 100
+#define SCORE_CAPT 1200
+
+
 #define SCORE_A_PLAYER 2000
 #define SCORE_B_PLAYER 50
 #define SCORE_C_PLAYER 25
@@ -114,24 +121,26 @@ int evaluation_player(const GameState *gameState, const char player){
         return MAX_EVAL;
     
     _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
-    score += _4_ * SCORE_A_PLAYER;
+    score += _4_ * SCORE_4;
     // if ( _4_ > 0)
     //     return MAX_EVAL -1;
     _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
-    score += SCORE_A_PLAYER * _4;
+    score += (SCORE_4 - SCORE_PEN) * _4;
     _4t = counter(gameState->board, player, SEQ_4_TROUS);
-    score += SCORE_A_PLAYER * _4t;
+    score += SCORE_3 * _4t;
     _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
-    score += SCORE_B_PLAYER * (_3_ / 2);
-    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE) - _4_ - _4;
-    score += (_3 * SCORE_C_PLAYER);
-    _2_ = counter(gameState->board, player, SEQ_2_LIBRE) / 2;
-    score += (_2_ * SCORE_D_PLAYER);
-    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE) - _4_ - _4 - _3_ - _3;
-    score += (_2 * SCORE_E_PLAYER);
-    score += (nb_prise * SCORE_PRISE_PLAYER);
+    score += SCORE_3 * _3_;
+    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE);
+    score += (_3 * (SCORE_3 - SCORE_PEN));
+    _2_ = counter(gameState->board, player, SEQ_2_LIBRE);
+    score += (_2_ * SCORE_2);
+    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE);
+    score += (_2 * (SCORE_2 - SCORE_PEN));
+    score += (nb_prise * SCORE_CAPT);
     return score;
 }
+
+
 #define SCORE_A_OPPONENT 4000
 #define SCORE_B_OPPONENT 500
 #define SCORE_C_OPPONENT 40
@@ -152,18 +161,18 @@ int evaluation_opponent(const GameState *gameState, const char player){
     if ( _4_ > 0)
         return MAX_EVAL;
     _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
+    score += (SCORE_4 - SCORE_PEN) * _4 + SCORE_PEN;
     _4t = counter(gameState->board, player, SEQ_4_TROUS);
-    score += SCORE_A_OPPONENT * (2 * _4t);
-    score += SCORE_A_OPPONENT * _4;
+    score += SCORE_3 * _4t + SCORE_PEN;
     _3_ = counter(gameState->board, player, SEQ_3_LIBRE);
-    score += SCORE_B_OPPONENT * (_3_ / 2);
-    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE) - _4_ - _4;
-    score += (_3 * SCORE_C_OPPONENT);
-    _2_ = counter(gameState->board, player, SEQ_2_LIBRE) / 2;
-    score += (_2_ * SCORE_D_OPPONENT);
-    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE) - _4_ - _4 - _3_ - _3;
-    score += (_2 * SCORE_E_OPPONENT);
-    score += (nb_prise * SCORE_PRISE_OPPONENT);
+    score += SCORE_3 * _3_ + SCORE_PEN;
+    _3 = counter(gameState->board, player, SEQ_3_SEMI_LIBRE);
+    score += (_3 * (SCORE_3 - SCORE_PEN)) + SCORE_PEN;
+    _2_ = counter(gameState->board, player, SEQ_2_LIBRE);
+    score += (_2_ * SCORE_2) + SCORE_PEN;
+    _2 = counter(gameState->board, player, SEQ_2_SEMI_LIBRE);
+    score += (_2 * (SCORE_2 - SCORE_PEN)) + SCORE_PEN;
+    score += (nb_prise * SCORE_CAPT) + SCORE_PEN;
     return score;
 }
 
