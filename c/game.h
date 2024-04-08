@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/29 19:45:08 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/05 11:56:38 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@
 #define MAX_EVAL INT_MAX
 #define MIN_EVAL INT_MIN
 #define WIN_MOVE -1
+
+#define FILENAME_STAT "stats/level1.csv"
 
 #define SEQ_4_LIBRE "011110"
 #define SEQ_4_SEMI_LIBRE "+11110"
@@ -95,12 +97,12 @@ void    free_gameState(GameState *game);
 // int _evaluate_player(const GameState *gameState, char player);
 // int _evaluate_opponent(const GameState *gameState, char opponent);
 GameState *apply_move(const GameState *original_gameState, int x, int y);
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, FILE *f);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
 bool score_move(GameState* gameState, char *board, int index, Move *move, const char current_player);
-Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
+// Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
 
 // Protoypes des fonctions dqns SandBox.c
@@ -111,16 +113,16 @@ int value_coup2(GameState *gameState, int currentMoveX, int currentMoveY);
 // Protoypes des fonctions dans heuristic.c
 int heuristic(Move *move, const char current_player, char *board, int index);
 bool check_capture_score(char *board, Move *move, char current_player, char opponent_player);
-int compare_age(void const *a, void const *b);
-char **create_map(const char *copie_board);
-void free_map(char **map);
+int compare_score(void const *a, void const *b);
+// char **create_map(const char *copie_board);
+// void free_map(char **map);
 int verif_sequence(int sequence, int extrem1, int extrem2);
 
 // fichiers essais.c
 int counter(const char *board, const char player, const char good[6]);
-int count_seq_4_trous(const char *board, char player);
+// int count_seq_4_trous(const char *board, char player);
 int evaluation_player(const GameState *gameState, const char player);
 int evaluation_opponent(const GameState *gameState, const char player);
-int evaluate_game(const GameState *gameState);
+// int evaluate_game(const GameState *gameState);
 
 #endif // GAME_H

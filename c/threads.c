@@ -45,7 +45,8 @@ void *evaluate_move(void *arg) {
     pthread_mutex_unlock(&lock);
 
     if (!early_exit){
-        data->result = minmax(data->gameStateCopy, data->depth, data->alpha, data->beta, data->maximizingPlayer, data->move.col, data->move.row);
+		FILE* f = stderr;
+        data->result = minmax(data->gameStateCopy, data->depth, data->alpha, data->beta, data->maximizingPlayer, data->move.col, data->move.row, f);
         if (data->result.coup_gagnant)
         {
             pthread_mutex_lock(&lock);

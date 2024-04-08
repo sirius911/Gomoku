@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   evaluator.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 12:50:04 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/29 19:32:44 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/04 18:51:32 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,9 @@ int counter(const char *board, const char player, const char good[6]){
     return count;
 }
 
-int count_seq_4_trous(const char *board, char player){
-    return counter(board, player, SEQ_4_TROUS);
-}
+// int count_seq_4_trous(const char *board, char player){
+//     return counter(board, player, SEQ_4_TROUS);
+// }
 
 #define SCORE_A_PLAYER 2000
 #define SCORE_B_PLAYER 50
@@ -167,11 +167,11 @@ int evaluation_opponent(const GameState *gameState, const char player){
     return score;
 }
 
-int evaluate_game(const GameState *gameState){
-    const char player = gameState->currentPlayer;
-    const char opponent = adversaire(player);
+// int evaluate_game(const GameState *gameState){
+//     const char player = gameState->currentPlayer;
+//     const char opponent = adversaire(player);
 
-    int score_player = evaluation_player(gameState, player);
-    int score_opponent = evaluation_opponent(gameState, opponent);
-    return score_player - score_opponent;
-}
+//     int score_player = evaluation_player(gameState, player);
+//     int score_opponent = evaluation_opponent(gameState, opponent);
+//     return score_player - score_opponent;
+// }

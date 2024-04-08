@@ -6,7 +6,7 @@
 /*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 19:33:01 by thoberth          #+#    #+#             */
-/*   Updated: 2024/03/25 17:07:23 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/04 18:52:05 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ int heuristic(Move *move, const char current_player, char *board, int index){
 }
 
 // Fonction de comparaison pour qsort
-int compare_age(const void *a, const void *b)
+int compare_score(const void *a, const void *b)
 {
 	const Move *moveA = (const Move *)a;
 	const Move *moveB = (const Move *)b;
@@ -202,40 +202,40 @@ bool check_capture_score(char *board, Move *move, char current_player, char oppo
 }
 
 
-char** create_map(const char* copie_board){
-	char **map = (char**)malloc(SIZE * sizeof(char *));
-	if(map == NULL) {
-		fprintf(stderr, "Allocation de mémoire échouée\n");
-		exit(EXIT_FAILURE);
-	}
-	for (int i = 0; i < SIZE; i++) {
-		map[i] = (char*)malloc(SIZE * sizeof(char));
-		if (map[i] == NULL) {
-			fprintf(stderr, "Allocation de mémoire échouée\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-	int index = 0;
-	for (int x = 0; x < SIZE; x++){
-		for (int y = 0; y < SIZE; y++){
-			if (copie_board[index] == 'X')
-				map[x][y] = '0';
-			else
-				map[x][y] = copie_board[index];
-			index++;
-		}
-	}
-	return map;
-}
+// char** create_map(const char* copie_board){
+// 	char **map = (char**)malloc(SIZE * sizeof(char *));
+// 	if(map == NULL) {
+// 		fprintf(stderr, "Allocation de mémoire échouée\n");
+// 		exit(EXIT_FAILURE);
+// 	}
+// 	for (int i = 0; i < SIZE; i++) {
+// 		map[i] = (char*)malloc(SIZE * sizeof(char));
+// 		if (map[i] == NULL) {
+// 			fprintf(stderr, "Allocation de mémoire échouée\n");
+// 			exit(EXIT_FAILURE);
+// 		}
+// 	}
+// 	int index = 0;
+// 	for (int x = 0; x < SIZE; x++){
+// 		for (int y = 0; y < SIZE; y++){
+// 			if (copie_board[index] == 'X')
+// 				map[x][y] = '0';
+// 			else
+// 				map[x][y] = copie_board[index];
+// 			index++;
+// 		}
+// 	}
+// 	return map;
+// }
 
-void free_map(char **map){
-	// Libération de la mémoire
-	for (int i = 0; i < SIZE; i++)
-	{
-		free(map[i]);
-	}
-	free(map);
-}
+// void free_map(char **map){
+// 	// Libération de la mémoire
+// 	for (int i = 0; i < SIZE; i++)
+// 	{
+// 		free(map[i]);
+// 	}
+// 	free(map);
+// }
 
 int verif_sequence(int sequence, int extrem1, int extrem2) {
 	if (sequence >= 5)

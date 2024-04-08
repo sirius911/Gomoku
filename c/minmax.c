@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/04/02 10:15:58 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/04 20:28:05 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
     return new_gameState; // Retourne la nouvelle copie avec le mouvement appliqué
 }
 
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row) {
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row, FILE *f) {
     // print("On rentre dans min max avec Maximizing = %s et current_player = %c\n", (maximizingPlayer)?"True":"False", gameState->currentPlayer);
     char winner = '0';
     if (game_over(gameState, &winner) || depth == 0) {
@@ -109,11 +109,12 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
 	Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
+	int best_move_stat = 0;
 
-    for (int i = 0; i < move_count; i++) {
+	for (int i = 0; i < move_count; i++) {
         // print("\t%c(%d,%d)\n", gameState->currentPlayer,moves[i].col, moves[i].row );
         GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
-        EvalResult eval = minmax(newGameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row);
+        EvalResult eval = minmax(newGameState, depth - 1, alpha, beta, !maximizingPlayer, moves[i].col, moves[i].row, f);
         free_gameState(newGameState); // Libération de l'instance de GameState
         if (maximizingPlayer && eval.coup_gagnant) {
             // Si on trouve un coup gagnant pour le joueur maximisant, on choisit immédiatement ce coup.
@@ -124,21 +125,23 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
             if (eval.scoreDiff > bestEval.scoreDiff) {
                 bestEval = eval;
                 bestEval.coup = moves[i];
-            }
+				best_move_stat = i;
+			}
             alpha = (alpha > eval.scoreDiff) ? alpha : eval.scoreDiff;
         } else {
             if (eval.scoreDiff < bestEval.scoreDiff ) {
                 bestEval = eval;
                 bestEval.coup = moves[i];
-            }
+				best_move_stat = i;
+			}
             beta = (beta < eval.scoreDiff) ? beta : eval.scoreDiff;
         }
-
         if (beta <= alpha) {
             break; // Coupe Alpha-Beta
         }
     }
-    free_moves(moves);
+	fprintf(f, "%d,%d\n", depth, best_move_stat);
+	free_moves(moves);
     return bestEval;
 }
 
@@ -151,13 +154,28 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
-    print_stat("\n#\n");
+
+	FILE *f;
+	if (access(FILENAME_STAT, F_OK) == -1){
+		f = fopen(FILENAME_STAT, "a+");
+		if (f == NULL)
+			exit(1);
+		fprintf(f, "depth,best_move\n");
+	}
+	else {
+		f = fopen(FILENAME_STAT, "a+");
+		if (f == NULL)
+			exit(1);
+	}
+	int best_move_stat = 0;
+
+	print_stat("\n#\n");
     for (int i = 0; i < move_count; i++) {
         EvalResult result;
         print("\n ***** Coup IA : %c(%d, %d) *****\n", gameState->currentPlayer, moves[i].col, moves[i].row);
 		GameState *newGameState = apply_move(gameState, moves[i].col, moves[i].row);
         // analyse(newGameState,true);
-        result = minmax(newGameState, (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false, moves[i].col, moves[i].row);
+        result = minmax(newGameState, (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false, moves[i].col, moves[i].row, f);
 		free_gameState(newGameState); // Libération de l'instance de GameState
 		print("\n---> Coup: (%d, %d), Score : %d - Score IA: %d, Score Adversaire: %d %s%s",
             moves[i].col, moves[i].row, result.scoreDiff, result.playerScore,result.opponentScore,
@@ -166,17 +184,21 @@ Move play_IA(GameState *gameState, int depth, bool debug, bool stat) {
         if (result.coup_gagnant){
             best_score = result.scoreDiff;
             best_move = moves[i];
+			best_move_stat = i;
             print("Break coup gagnant\n");
             break;
         }
         if (result.scoreDiff > best_score) {
             best_score = result.scoreDiff;
             best_move = moves[i];
-            print("*=* Meilleur coup pour IA *=*\n");
-        }
+			best_move_stat = i;
+			print("*=* Meilleur coup pour IA *=*\n");
+		}
         print("\n");
     }
-    if (best_move.col != -1 && best_move.row != -1) {
+	fprintf(f, "0,%d\n", best_move_stat);
+	fclose(f);
+	if (best_move.col != -1 && best_move.row != -1) {
         print("\n*** best = (%d, %d) with score = %d\n", best_move.col, best_move.row, best_score);
     } else {
         print("Aucun mouvement possible trouvé\n");
@@ -320,17 +342,18 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
         }
     }
 	fin_boucles:
-	qsort(moves, (size_t)count, sizeof(Move), compare_age);
+	qsort(moves, (size_t)count, sizeof(Move), compare_score);
 	// if (DEBUG){
-    //     for (int i = 0; i<count2;i++) {
-    //         print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
-    //     }
-    // }
-    if (count2 < 8)
-        *move_count = count2;
-    else
-        *move_count = 8;
-    if (copie_board)
-        free(copie_board);
+	//     for (int i = 0; i<count2;i++) {
+	//         print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
+	//     }
+	// }
+	// if (count2 < 8)
+	//     *move_count = count2;
+	// else
+	//     *move_count = 8;
+	*move_count = count2;
+	if (copie_board)
+		free(copie_board);
     return moves;
 }
