@@ -3,24 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   sandBox.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 10:48:54 by clorin            #+#    #+#             */
-/*   Updated: 2024/03/28 10:52:46 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/09 17:19:37 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "game.h"
 
-int nb_coups(GameState *gameState){
-    int move_count;
-    int topLeftX, topLeftY, bottomRightX, bottomRightY;
-    findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
+// int nb_coups(GameState *gameState){
+//     int move_count;
+//     int topLeftX, topLeftY, bottomRightX, bottomRightY;
+//     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
 
-    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
-    free_moves(moves);
-    return move_count;
-}
+//     Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX,topLeftY,bottomRightX,bottomRightY);
+//     free_moves(moves);
+//     return move_count;
+// }
 
 int value_coup(GameState *gameState, int currentMoveX, int currentMoveY){
     /*
