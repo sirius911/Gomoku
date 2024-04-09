@@ -5,18 +5,20 @@ import time
 import ctypes
 import pickle
 
+SIZE = 19
+
 class Move(ctypes.Structure):
             _fields_ = [("col", ctypes.c_int),
                         ("row", ctypes.c_int),
                         ("score", ctypes.c_int)]
             
 class GameState(ctypes.Structure):
-            _fields_ = [("board", ctypes.POINTER(ctypes.c_char)), # Un pointeur vers un tableau de char
+            _fields_ = [("board", ctypes.c_char * (SIZE * SIZE + 1)),
                         ("captures", ctypes.c_int * 2),    # Un tableau de 2 entiers pour les captures
                         ("currentPlayer", ctypes.c_char)]  # Le joueur actuel
 
 class GomokuLogic:
-    def __init__(self, size=19, ia = {"black":False, "white":False}, debug=False, ia_level=1):
+    def __init__(self, size=SIZE, ia = {"black":False, "white":False}, debug=False, ia_level=1):
         self.size = size
         self.board = {}
         self.current_player = "black"
@@ -149,8 +151,8 @@ class GomokuLogic:
     
     def getGameState(self):
         game_state = GameState()
-        board_bytes = self.board_2_char()
-        game_state.board = ctypes.cast(board_bytes, ctypes.POINTER(ctypes.c_char))  # Conversion en POINTER(c_char)
+        game_state.board = self.board_2_char()
+        # game_state.board = (ctypes.c_char * (SIZE * SIZE + 1)).from_buffer_copy(board_bytes)  # Conversion en POINTER(c_char)
         game_state.captures = (ctypes.c_int * 2)(self.captures['black'], self.captures['white'])  # Initialiser les captures
         game_state.currentPlayer = ctypes.c_char(self.current_player.capitalize()[0].encode('utf-8'))
         return ctypes.byref(game_state)
@@ -167,8 +169,9 @@ class GomokuLogic:
                     stone = board[(col,row)].capitalize()[0]
                     ret += stone
         ret += "\0"
-        return ctypes.c_char_p(ret.encode('utf-8'))
-    
+        ret = ret.encode()
+        return ret
+
     def check_double_three(self, x, y):
         self.libgame.check_double_three.restype = ctypes.c_bool
         self.libgame.check_double_three.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_char]
