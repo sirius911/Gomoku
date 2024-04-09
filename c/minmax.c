@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minmax.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/04/02 10:15:58 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/09 16:00:18 by thoberth         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,10 +326,10 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
     //         print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
     //     }
     // }
-    if (count2 < 8)
+    if (count2 < 20)
         *move_count = count2;
     else
-        *move_count = 8;
+        *move_count = 20;
     if (copie_board)
         free(copie_board);
     return moves;
