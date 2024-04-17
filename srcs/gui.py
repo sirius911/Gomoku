@@ -231,10 +231,8 @@ class GomokuGUI:
                 self.master.after(0, self.draw_current_player_indicator)
 
                 if self.status == WIN_GAME:
-                    win = self.game_logic.current_player
-                    if win == self.game_logic.ia:
-                        win += " (IA)"
-                    self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+                    win = self.game_logic.current_player + (" (IA)" if self.game_logic.current_player == self.game_logic.ia else "")
+                    self.master.after(0, lambda: EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game))
                 else:
                     self.master.after(0, self.handle_player_change)
 
