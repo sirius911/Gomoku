@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
 import tkinter as tk
 from gui import GomokuGUI
 from game_logic import GomokuLogic
