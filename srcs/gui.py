@@ -71,11 +71,12 @@ class GomokuGUI:
 
         # Ajouter le menu Timer
         timer_menu = tk.Menu(menu_bar, tearoff=0)
-        timer_menu.add_radiobutton(label="Aucun", command=lambda:self.set_timer_duration(0))
-        timer_menu.add_radiobutton(label="5 Minutes", command=lambda: self.set_timer_duration(5))
-        timer_menu.add_radiobutton(label="10 Minutes", command=lambda: self.set_timer_duration(10))
-        timer_menu.add_radiobutton(label="15 Minutes", command=lambda: self.set_timer_duration(15))
-            
+        self.timer_var = tk.IntVar(value=0)
+        timer_menu.add_radiobutton(label="Aucun", value=0, variable=self.timer_var, command=lambda: self.set_timer_duration(0))
+        timer_menu.add_radiobutton(label="5 Minutes", value=5, variable=self.timer_var, command=lambda: self.set_timer_duration(5))
+        timer_menu.add_radiobutton(label="10 Minutes", value=10, variable=self.timer_var, command=lambda: self.set_timer_duration(10))
+        timer_menu.add_radiobutton(label="15 Minutes", value=15, variable=self.timer_var, command=lambda: self.set_timer_duration(15))
+                
         #info
         self.debug = tk.BooleanVar()
         info_menu = tk.Menu(self.master, tearoff=0)
@@ -183,32 +184,6 @@ class GomokuGUI:
             self.game_logic.manual_play(x, y)
             self.saved = False
             self.draw_stones()
-
-    # def ia_play(self):
-    #     def run_ia():
-    #         self.status = CONTINUE_GAME
-    #         while self.status == CONTINUE_GAME and self.is_IA_turn():
-    #             self.saved = False
-    #             self.master.config(cursor="watch")
-    #             self.status, play_time = self.game_logic.play_IA()
-
-    #             # Mise à jour du label du temps dans le thread principal
-    #             self.master.after(0, self.timer_label.config, {"text": f"{play_time:.2f}s"})
-    #             self.master.after(0, self.master.config, {"cursor": ""})
-    #             self.master.after(0, self.draw_stones)
-    #             self.master.after(0, self.update_captures_display, self.game_logic.captures)
-    #             self.master.after(0, self.draw_current_player_indicator)
-                
-    #             if self.status == WIN_GAME:
-    #                 win = self.game_logic.current_player
-    #                 if win == self.game_logic.ia:
-    #                     win += " (IA)"
-    #                 self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
-    #             else:
-    #                 self.master.after(0, self.handle_player_change)
-
-    #     thread = threading.Thread(target=run_ia)
-    #     thread.start()
 
     def ia_play(self):
         def run_ia():
@@ -329,13 +304,12 @@ class GomokuGUI:
         self.master.config(cursor="")
 
     def draw_current_player_indicator(self):
-        # Assurez-vous d'effacer l'indicateur précédent
+        # effacer l'indicateur précédent
         self.canvas.delete("current_player_indicator")
 
         # Position pour le texte et le cercle
         radius = self.cell_size // 4  # Taille de l'indicateur
 
-        # Déterminez la couleur du joueur actuel
         color = self.game_logic.current_player
 
         # Le texte "Player: "
@@ -354,7 +328,7 @@ class GomokuGUI:
         text_x = center_x
         text_y = 5  # Modifier selon les besoins pour ajuster la hauteur verticale
         indicator_x = center_x
-        indicator_y = text_y + 30 # Placé un peu en dessous du texte, ajustez selon l'espace souhaité
+        indicator_y = text_y + 30 # Placé un peu en dessous du texte
 
         # Dessinez le texte pour indiquer le joueur actuel au centre
         self.canvas.create_text(text_x, text_y, text=texte, anchor="n", tags="current_player_indicator")
