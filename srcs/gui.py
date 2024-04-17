@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 from constants import *
 from dialogs import EndGameDialog, CustomDialog, hsl_to_rgb
@@ -15,6 +16,7 @@ class GomokuGUI:
         self.margin = margin
         self.top_margin = top_margin
         self.canvas = tk.Canvas(master, width=self.pixel_size, height=self.pixel_size+100)
+        self.width_canvas = 584
         self.canvas.bind("<Button-1>", self.on_canvas_click)
         self.canvas.pack()
         self.captures_labels = {
@@ -66,7 +68,14 @@ class GomokuGUI:
         self.threads = tk.BooleanVar()
         ia_menu.add_separator()
         ia_menu.add_checkbutton(label="Threads", variable=self.threads, command=self.toggle_threads)
-        
+
+        # Ajouter le menu Timer
+        timer_menu = tk.Menu(menu_bar, tearoff=0)
+        timer_menu.add_radiobutton(label="Aucun", command=lambda:self.set_timer_duration(0))
+        timer_menu.add_radiobutton(label="5 Minutes", command=lambda: self.set_timer_duration(5))
+        timer_menu.add_radiobutton(label="10 Minutes", command=lambda: self.set_timer_duration(10))
+        timer_menu.add_radiobutton(label="15 Minutes", command=lambda: self.set_timer_duration(15))
+            
         #info
         self.debug = tk.BooleanVar()
         info_menu = tk.Menu(self.master, tearoff=0)
@@ -77,6 +86,7 @@ class GomokuGUI:
         menu_bar.add_cascade(label="Fichier", menu=file_menu)
         menu_bar.add_cascade(label="Coups", menu=self.coups_menu)
         menu_bar.add_cascade(label="IA", menu=ia_menu)
+        menu_bar.add_cascade(label="Timer", menu=timer_menu)
         menu_bar.add_cascade(label="info", menu=info_menu)
 
         # Configurer la fenêtre principale pour utiliser cette barre de menu
@@ -112,9 +122,24 @@ class GomokuGUI:
         # Liez l'événement de mouvement de la souris sur le canvas à la fonction update_mouse_coords
         self.canvas.bind("<Motion>", self.update_mouse_coords)
 
-        self.history_index_label = tk.Label(master, text="")
-        self.history_index_label.place(relx=1.0, rely=0.0, anchor="ne")
-        
+        # Timer
+        self.timer_incremental = True
+        self.current_timer_setting = 5  # valeur par défaut en minutes quand timer_incrementiel = False
+
+        self.time_elapsed_black = 0
+        self.time_elapsed_white = 0
+
+        self.timer_black = tk.StringVar(value="00:00")
+        self.timer_white = tk.StringVar(value="00:00")
+
+        self.label_timer_black = tk.Label(self.master, textvariable=self.timer_black, font=("Arial", 20), fg="black")
+        self.label_timer_white = tk.Label(self.master, textvariable=self.timer_white, font=("Arial", 20), fg="white")
+        self.label_timer_black.place(x=10, y=10)
+        self.label_timer_white.place(x=470, y=10)
+
+        #status
+        self.status = INTERRUPTED
+
         self.draw_current_player_indicator()
         self.update_captures_display(self.game_logic.captures)
 
@@ -132,14 +157,14 @@ class GomokuGUI:
         x, y = self.convert_pixel_to_grid(event.x, event.y)
         if not self.edition.get():
             self.game_logic.value_coup(x,y)
-            status = self.game_logic.play(x, y)
-            if status == INVALID_MOVE or status == FORBIDDEN_MOVE:
-                if status == FORBIDDEN_MOVE:
-                    CustomDialog(parent=self.master, title='Invalide Move',message=status['message'], alert_type=status['alert_type'])
+            self.status = self.game_logic.play(x, y)
+            if self.status == INVALID_MOVE or self.status == FORBIDDEN_MOVE:
+                if self.status == FORBIDDEN_MOVE:
+                    CustomDialog(parent=self.master, title='Invalide Move',message=self.status['message'], alert_type=self.status['alert_type'])
             else:
                 self.saved = False
                 self.draw_stones()
-                if status == WIN_GAME:
+                if self.status == WIN_GAME:
                     win = self.game_logic.current_player
                     if win == self.game_logic.ia:
                         win += " (IA)"
@@ -149,6 +174,9 @@ class GomokuGUI:
                     self.update_captures_display(self.game_logic.captures)
                     self.game_logic.switch_player()
                     self.draw_current_player_indicator()
+                    # Démarrez ou redémarrez le compteur pour le joueur actuel
+                    self.handle_player_change()
+
                     if self.is_IA_turn():
                         self.ia_play()
         else:
@@ -156,22 +184,63 @@ class GomokuGUI:
             self.saved = False
             self.draw_stones()
 
+    # def ia_play(self):
+    #     def run_ia():
+    #         self.status = CONTINUE_GAME
+    #         while self.status == CONTINUE_GAME and self.is_IA_turn():
+    #             self.saved = False
+    #             self.master.config(cursor="watch")
+    #             self.status, play_time = self.game_logic.play_IA()
+
+    #             # Mise à jour du label du temps dans le thread principal
+    #             self.master.after(0, self.timer_label.config, {"text": f"{play_time:.2f}s"})
+    #             self.master.after(0, self.master.config, {"cursor": ""})
+    #             self.master.after(0, self.draw_stones)
+    #             self.master.after(0, self.update_captures_display, self.game_logic.captures)
+    #             self.master.after(0, self.draw_current_player_indicator)
+                
+    #             if self.status == WIN_GAME:
+    #                 win = self.game_logic.current_player
+    #                 if win == self.game_logic.ia:
+    #                     win += " (IA)"
+    #                 self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+    #             else:
+    #                 self.master.after(0, self.handle_player_change)
+
+    #     thread = threading.Thread(target=run_ia)
+    #     thread.start()
+
     def ia_play(self):
-        status = CONTINUE_GAME
-        while  status == CONTINUE_GAME and self.is_IA_turn():
-            self.saved = False
-            self.master.config(cursor="watch")
-            status,play_time = self.game_logic.play_IA()
-            self.master.config(cursor="")
-            self.draw_stones()
-            self.update_captures_display(self.game_logic.captures)
-            self.draw_current_player_indicator()
-            self.timer_label.config(text=f"{play_time:.2f}s")
-            if status == WIN_GAME:
-                win = self.game_logic.current_player
-                if win == self.game_logic.ia:
-                    win += " (IA)"
-                self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+        def run_ia():
+            # Assurez-vous que tout timer est annulé avant de démarrer l'IA
+            if hasattr(self, 'timer_id'):
+                self.master.after(0, self.cancel_timer)
+
+            self.status = CONTINUE_GAME
+            while self.status == CONTINUE_GAME and self.is_IA_turn():
+                # Simuler un jeu par l'IA
+                self.saved = False
+                self.master.after(0, lambda: self.master.config(cursor="watch"))
+                self.status, play_time = self.game_logic.play_IA()
+
+                # Mise à jour de l'interface utilisateur dans le thread principal
+                self.master.after(0, lambda: self.timer_label.config(text=f"{play_time:.2f}s"))
+                self.master.after(0, lambda: self.master.config(cursor=""))
+                self.master.after(0, self.draw_stones)
+                self.master.after(0, lambda: self.update_captures_display(self.game_logic.captures))
+                self.master.after(0, self.draw_current_player_indicator)
+
+                if self.status == WIN_GAME:
+                    win = self.game_logic.current_player
+                    if win == self.game_logic.ia:
+                        win += " (IA)"
+                    self.end_game_dialog = EndGameDialog(self.master, f"{win} a gagné ! Voulez-vous rejouer ?", self.replay_game, self.quit_game)
+                else:
+                    self.master.after(0, self.handle_player_change)
+
+        # Démarrer le thread de l'IA
+        thread = threading.Thread(target=run_ia)
+        thread.start()
 
     def is_IA_turn(self):
         return (self.game_logic.IA_Turn() and not self.edition.get())
@@ -266,10 +335,6 @@ class GomokuGUI:
         self.canvas.delete("current_player_indicator")
 
         # Position pour le texte et le cercle
-        text_x = self.margin // 4
-        text_y = self.margin // 2
-        indicator_x = (self.margin // 2 + self.cell_size // 4) + 110
-        indicator_y = self.margin // 2
         radius = self.cell_size // 4  # Taille de l'indicateur
 
         # Déterminez la couleur du joueur actuel
@@ -282,12 +347,22 @@ class GomokuGUI:
             texte = "Player's Turn "
             if self.is_IA_turn():
                 texte += "(IA)"
-        self.canvas.create_text(text_x, text_y, text=texte, anchor="w", tags="current_player_indicator")
+            texte += f" Coup N° {self.game_logic.history_index + 1} "
+        # Calculer le centre horizontal
+        width = self.width_canvas
+        center_x = width // 2
+
+        # Coordonnées pour le texte et le cercle
+        text_x = center_x
+        text_y = 5  # Modifier selon les besoins pour ajuster la hauteur verticale
+        indicator_x = center_x
+        indicator_y = text_y + 30 # Placé un peu en dessous du texte, ajustez selon l'espace souhaité
+
+        # Dessinez le texte pour indiquer le joueur actuel au centre
+        self.canvas.create_text(text_x, text_y, text=texte, anchor="n", tags="current_player_indicator")
 
         # Dessinez un cercle pour indiquer le joueur actuel
-        self.canvas.create_oval(indicator_x - radius, indicator_y - radius, indicator_x + radius, indicator_y + radius, fill=color, tags="current_player_indicator")
-        self.canvas.update()
-        self.update_history_index_display()
+        self.canvas.create_oval(indicator_x - radius, indicator_y - radius, indicator_x + radius, indicator_y + radius, fill=color, tags="current_player_indicator")  # Changez 'red' par la couleur souhaitée
 
     def convert_pixel_to_grid(self, pixel_x, pixel_y):
         grid_x = (pixel_x - self.margin + self.cell_size // 2) // self.cell_size
@@ -329,7 +404,12 @@ class GomokuGUI:
 
         # Mettre à jour l'affichage des captures, scores, etc. si nécessaire
         self.update_captures_display({ "black": 0, "white": 0 })
-        # self.update_captures_display(self.game_logic.captures)
+
+            # Réinitialiser les timers
+        self.set_timer_duration(self.current_timer_setting)
+        self.update_timer_label()
+
+        self.status = INTERRUPTED
 
          # Redessiner le plateau de jeu
         self.draw_board()
@@ -337,11 +417,13 @@ class GomokuGUI:
         self.update_title()
 
     def replay_game(self):
+
         if self.end_game_dialog:
             self.end_game_dialog.destroy()
             self.end_game_dialog = None
         # Réinitialiser la logique de jeu
         self.game_logic = GomokuLogic(ia=self.game_logic.ia, debug=self.game_logic.debug, ia_level=self.game_logic.ia_level)
+        self.status = INTERRUPTED
         # Effacer le plateau de jeu dans l'interface graphique
         self.canvas.delete("all")
         if self.path is not None:
@@ -349,7 +431,10 @@ class GomokuGUI:
         else:
             # Mettre à jour l'affichage des captures, scores, etc. si nécessaire
             self.update_captures_display({ "black": 0, "white": 0 })
-            # self.update_captures_display(self.game_logic.captures)
+
+            # Réinitialiser les timers
+            self.set_timer_duration(self.current_timer_setting) 
+            self.update_timer_label()
 
             # Redessiner le plateau de jeu
             self.draw_board()
@@ -384,15 +469,13 @@ class GomokuGUI:
                 
             else:
                 CustomDialog(parent=self.master, title='Bad File',message='bad file', alert_type='error')
+            self.status = INTERRUPTED
             self.update_title()
             self.update_menu()
             self.draw_board()  # Redessiner le plateau de jeu après le chargement
             self.draw_stones()  # Redessiner les pierres après le chargement
             self.update_captures_display(self.game_logic.captures)
             self.draw_current_player_indicator()
-
-            # if self.is_IA_turn():
-            #     self.ia_play()
 
     def version(self):
         title = f"Gomoku {VERSION}"
@@ -507,8 +590,78 @@ class GomokuGUI:
 
     def toggle_threads(self):
         self.game_logic.threads = (self.threads.get() == 1)
+    
+    def update_timer_label(self):
+        if self.timer_incremental:
+            # Mode incrémentiel: Affiche le temps écoulé
+            self.timer_black.set(f"{self.time_elapsed_black // 60:02}:{self.time_elapsed_black % 60:02}")
+            self.timer_white.set(f"{self.time_elapsed_white // 60:02}:{self.time_elapsed_white % 60:02}")
+        else:
+            # Mode décrémentiel: Affiche le temps restant
+            self.timer_black.set(f"{self.time_left_black // 60:02}:{self.time_left_black % 60:02}")
+            self.timer_white.set(f"{self.time_left_white // 60:02}:{self.time_left_white % 60:02}")
 
-    def update_history_index_display(self):
-        text = f"Coup N° {self.game_logic.history_index + 1} "  # +1 car les index commencent à 0
-        self.history_index_label.config(text=text)
+
+    def update_timer(self):
+        if self.status not in [CONTINUE_GAME, INTERRUPTED]:
+            if hasattr(self, 'timer_id'):
+                self.master.after_cancel(self.timer_id)
+            return  # Arrête le timer si le jeu n'est pas en cours
+
+        if self.timer_incremental:
+            # Mode incrémentiel: incrémente le temps du joueur actuel
+            current_player = self.game_logic.current_player
+            if current_player == "black":
+                self.time_elapsed_black += 1
+            else:
+                self.time_elapsed_white += 1
+        else:
+            # Mode décrémentiel: décrémente le temps du joueur actuel
+            if self.game_logic.current_player == "black":
+                self.time_left_black -= 1
+                if self.time_left_black <= 0:
+                    self.end_game_dialog = EndGameDialog(self.master, f"White a gagné !\nVoulez-vous rejouer ?", self.replay_game, self.quit_game)
+                    self.status = WIN_GAME
+                    return
+            else:
+                self.time_left_white -= 1
+                if self.time_left_white <= 0:
+                    self.end_game_dialog = EndGameDialog(self.master, f"Black a gagné !\nVoulez-vous rejouer ?", self.replay_game, self.quit_game)
+                    self.status = WIN_GAME
+                    return
+
+        # Met à jour les labels de temps et planifie la prochaine mise à jour
+        self.update_timer_label()
+        self.timer_id = self.master.after(1000, self.update_timer)
+
+    def handle_player_change(self):
+        # Redémarrez le timer pour le nouveau joueur, en annulant le précédent si nécessaire
+        self.cancel_timer()
+        self.update_timer()
+
+
+    def set_timer_duration(self, minutes):
+        self.current_timer_setting = minutes
+        self.timer_incremental = (minutes == 0)
+
+        if self.timer_incremental:
+            self.time_elapsed_black = 0
+            self.time_elapsed_white = 0
+        else:
+            self.time_left_black = minutes * 60
+            self.time_left_white = minutes * 60
+
+        # annuler le timer précédent avant de démarrer un nouveau
+        self.cancel_timer()
+
+        self.update_timer_label()
+        self.handle_player_change()
+
+    def cancel_timer(self):
+        if hasattr(self, 'timer_id') and self.timer_id is not None:
+            try:
+                self.master.after_cancel(self.timer_id)
+            except ValueError:
+                print("Erreur lors de l'annulation du timer, peut-être déjà annulé.")
+            self.timer_id = None  # Réinitialiser l'identifiant pour éviter des références erronées
 

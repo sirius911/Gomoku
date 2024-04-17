@@ -89,10 +89,11 @@ class EndGameDialog(tk.Toplevel):
         self.quit_button = tk.Button(self, text="Quitter", command=self.quit)
         self.quit_button.pack(side=tk.RIGHT, padx=10, pady=10)
 
-        self.protocol("WM_DELETE_WINDOW", self.destroy)  # Gérer la fermeture de la fenêtre
+        # self.protocol("WM_DELETE_WINDOW", self.destroy)  # Gérer la fermeture de la fenêtre
         self.transient(parent)  # Assurer que la boîte de dialogue est modale
-        # self.grab_set()  # Capturer tous les événements vers cette fenêtre
-        center_window(self, parent) 
+
+        center_window(self, parent)
+        self.grab_set()  # Capturer tous les événements vers cette fenêtre
         self.wait_window(self)  # Attendre que la fenêtre soit fermée avant de continuer
 
     def replay(self):
@@ -103,4 +104,4 @@ class EndGameDialog(tk.Toplevel):
     def quit(self):
         # Appel de la fonction callback externe pour quitter
         self.quit_callback()
-        # self.destroy()  # Ferme la fenêtre de dialogue
+        self.destroy()  # Ferme la fenêtre de dialogue
