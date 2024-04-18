@@ -4,6 +4,7 @@ from constants import *
 from dialogs import EndGameDialog, CustomDialog, hsl_to_rgb
 from game_logic import GomokuLogic
 from tkinter import filedialog
+from help import display_help
 
 class GomokuGUI:
     def __init__(self, master, game_logic, size=19, cell_size=30, margin=20, top_margin = 50):
@@ -82,6 +83,8 @@ class GomokuGUI:
         info_menu = tk.Menu(self.master, tearoff=0)
         info_menu.add_command(label="Version", command=self.version)
         info_menu.add_checkbutton(label="Debug", variable=self.debug, command=self.toggle_debug)
+        info_menu.add_separator()
+        info_menu.add_command(label="Aide", command=display_help)
         
         # Ajouter les menus
         menu_bar.add_cascade(label="Fichier", menu=file_menu)
