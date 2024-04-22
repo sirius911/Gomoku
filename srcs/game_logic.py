@@ -64,8 +64,8 @@ class GomokuLogic:
         if self.check_double_three(x, y):
             del self.board[x,y]
             return FORBIDDEN_MOVE
-        captured1, captured2 = self.check_capture(x, y, self.current_player)
-        self.record_move(x, y, captured1, captured2)
+        captured_list = self.check_capture(x, y, self.current_player)
+        self.record_move(x, y, captured_list)
         # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         # self.history_index += 1
         # self.sandBox()
@@ -81,8 +81,8 @@ class GomokuLogic:
     def play_IA(self):
         
         gameState = self.getGameState()
-        # if self.debug:
-        self.libgame.analyse(gameState, self.debug)
+        if self.debug:
+            self.libgame.analyse(gameState, self.debug)
         start_time = time.time()
         if self.threads:
             self.libgame.play_IA_threads.restype = Move
@@ -99,8 +99,8 @@ class GomokuLogic:
             return WIN_GAME, play_time
         
         self.board[(x, y)] = self.current_player
-        captured1, captured2 = self.check_capture(x, y, self.current_player)
-        self.record_move(x, y, captured1, captured2)
+        captured_list = self.check_capture(x, y, self.current_player)
+        self.record_move(x, y, captured_list)
         # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
         # self.history_index += 1
         if self.check_win():
@@ -127,25 +127,30 @@ class GomokuLogic:
         return self.libgame.game_over(gameState, ctypes.byref(winner_p))
 
     def check_capture(self, x, y, player):
-        board = self.board_2_char()
+        
         # Configurez les types de retour et les types d'argument pour check_capture et free_captured_moves
         self.libgame.check_capture.restype = ctypes.POINTER(Move)
         self.libgame.check_capture.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
         self.libgame.free_moves.argtypes = [ctypes.POINTER(Move)]
-
+        captured_list = []
         # Appel à check_capture
-        captured_moves = self.libgame.check_capture(board, x, y)
+        while True:
+            board = self.board_2_char()
+            captured_moves = self.libgame.check_capture(board, x, y)
 
-        move1,move2 = None, None
-        if captured_moves:
-            move1 = Move(captured_moves[0].col, captured_moves[0].row)
-            move2 = Move(captured_moves[1].col, captured_moves[1].row)
-            del self.board[(move1.col,move1.row)]
-            del self.board[(move2.col,move2.row)]
-            self.captures[player] += 2
-            self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
+            move1,move2 = None, None
+            if captured_moves:
+                move1 = Move(captured_moves[0].col, captured_moves[0].row)
+                move2 = Move(captured_moves[1].col, captured_moves[1].row)
+                captured_list.append((move1,move2))
+                del self.board[(move1.col,move1.row)]
+                del self.board[(move2.col,move2.row)]
+                self.captures[player] += 2
+                self.libgame.free_moves(captured_moves)# Libérer la mémoire allouée une fois que vous avez fini avec captured_moves
+            else:
+                break
 
-        return (move1, move2)
+        return captured_list
     
     def getGameState(self):
         game_state = GameState()
@@ -210,8 +215,8 @@ class GomokuLogic:
             print(f"Erreur (bad file): {e}")
             return False
         
-    def record_move(self, x, y, captured1, captured2):
-        new_move = {'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)}
+    def record_move(self, x, y, captured_list):
+        new_move = {'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured': captured_list}
         # Vérifie si on est à la fin de l'historique
         if self.history_index < len(self.history) - 1:
             # Si non, efface les mouvements qui sont "en avant" dans l'historique
@@ -229,7 +234,7 @@ class GomokuLogic:
             position = last_move['position']
             player = last_move['player']
             self.captures = last_move['captures']
-            captured1, captured2 = last_move['captured']
+            captured_list = last_move['captured']
             
             # Supprimez le coup du plateau
             if position in self.board:
@@ -240,10 +245,16 @@ class GomokuLogic:
             
             # si captured on restore
             self.opponent[self.current_player]
-            if (captured1, captured2) != (None, None):
-                self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
-                self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
-                self.captures[player] -= 2
+            for captured in captured_list:
+                if captured is not None:
+                    if (captured[0], captured[1]) != (None, None):
+                        self.board[(captured[0].col, captured[0].row)]=self.opponent[self.current_player]
+                        self.board[(captured[1].col, captured[1].row)]=self.opponent[self.current_player]
+                        self.captures[player] -= 2
+            # if (captured1, captured2) != (None, None):
+            #     self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
+            #     self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
+            #     self.captures[player] -= 2
             return True
         else:
             return False
@@ -257,11 +268,15 @@ class GomokuLogic:
             # Appliquez le coup suivant. Assurez-vous que la logique ici correspond à "refaire" le coup correctement
             self.board[position] = player
             self.current_player = self.opponent[player]  # Changez le joueur
-            if next_move['captured'] != (None, None):
-                captured1, captured2 = next_move['captured']
-                del self.board[(captured1.col, captured1.row)]
-                del self.board[(captured2.col, captured2.row)]
-                self.captures[player] += 2  # Restaurez les captures si nécessaire
+            for captured in next_move['captured']:
+                del self.board[(captured[0].col, captured[0].row)]
+                del self.board[(captured[1].col, captured[1].row)]
+                self.captures[player] += 2
+            # if next_move['captured'] != (None, None):
+            #     captured1, captured2 = next_move['captured']
+            #     del self.board[(captured1.col, captured1.row)]
+            #     del self.board[(captured2.col, captured2.row)]
+            #     self.captures[player] += 2  # Restaurez les captures si nécessaire
             return True
         else:
             return False

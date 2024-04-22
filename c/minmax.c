@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/04/21 23:25:58 by clorin           ###   ########.fr       */
+/*   Updated: 2024/04/22 13:44:39 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,15 +46,18 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
     new_gameState->board[index] = original_gameState->currentPlayer;
     new_gameState->currentPlayer = adversaire(original_gameState->currentPlayer);
 
-    Move *captured = check_capture(new_gameState->board, x, y);
-    if (captured){
-        new_gameState->board = del_captured(new_gameState->board, captured);
-        if (original_gameState->currentPlayer == 'B')
-            new_gameState->captures[0] += 2;
-        else
-            new_gameState->captures[1] += 2;
-        free_moves(captured);
-    }
+    Move *captured;
+    do {
+        captured = check_capture(new_gameState->board, x, y);
+        if (captured) {
+            new_gameState->board = del_captured(new_gameState->board, captured);
+            if (original_gameState->currentPlayer == 'B')
+                new_gameState->captures[0] += 2;
+            else
+                new_gameState->captures[1] += 2;
+            free_moves(captured);
+        }
+    } while (captured != NULL);
     print_stat(".");
     return new_gameState; // Retourne la nouvelle copie avec le mouvement appliqué
 }
