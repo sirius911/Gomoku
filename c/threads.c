@@ -36,9 +36,10 @@ GameState *copy_game_state(const GameState *src) {
 // Fonction exécutée par chaque thread pour évaluer un mouvement
 void *evaluate_move(void *arg) {
     ThreadData *data = (ThreadData *)arg;
+    int ia_level = data->depth;
 
     GameState *newGameState = apply_move(data->gameState, data->move.col, data->move.row);
-    data->result = minmax(newGameState, data->depth, data->alpha, data->beta, data->maximizingPlayer, data->move.col, data->move.row);
+    data->result = minmax(newGameState, (data->depth * 2) - 1, data->alpha, data->beta, data->maximizingPlayer, data->move.col, data->move.row, ia_level);
     free_gameState(newGameState); // Libérer la copie du GameState
     pthread_exit(NULL);
 }
@@ -46,9 +47,10 @@ void *evaluate_move(void *arg) {
 Move play_IA_threads(GameState *gameState, int depth, bool debug) {
     DEBUG = debug;
     int move_count;
+    int ia_level = depth;
     int topLeftX, topLeftY, bottomRightX, bottomRightY;
     findBoxElements(gameState->board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
-    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY);
+    Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY, ia_level);
 
     pthread_t threads[move_count];
     ThreadData threadData[move_count];
@@ -56,7 +58,7 @@ Move play_IA_threads(GameState *gameState, int depth, bool debug) {
     // Initialiser et lancer les threads
     print("Création de %d threads\n", move_count);
     for (int i = 0; i < move_count; i++) {
-        threadData[i] = (ThreadData){gameState, moves[i], (depth * 2) - 1, MIN_EVAL, MAX_EVAL, false};
+        threadData[i] = (ThreadData){gameState, moves[i], depth, MIN_EVAL, MAX_EVAL, false};
         if (pthread_create(&threads[i], NULL, evaluate_move, &threadData[i]) != 0) {
             fprintf(stderr, "Error creating thread\n");
             exit(1);

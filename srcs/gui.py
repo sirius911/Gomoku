@@ -191,8 +191,8 @@ class GomokuGUI:
     def ia_play(self):
         def run_ia():
             # Assurez-vous que tout timer est annulé avant de démarrer l'IA
-            if hasattr(self, 'timer_id'):
-                self.master.after(0, self.cancel_timer)
+            # if hasattr(self, 'timer_id'):
+            #     self.master.after(0, self.cancel_timer)
 
             self.status = CONTINUE_GAME
             while self.status == CONTINUE_GAME and self.is_IA_turn():

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/09 17:52:22 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/04/21 23:25:36 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,13 @@ void    free_gameState(GameState *game);
 // int _evaluate_player(const GameState *gameState, char player);
 // int _evaluate_opponent(const GameState *gameState, char opponent);
 GameState *apply_move(const GameState *original_gameState, int x, int y);
-EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY);
+EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int ia_level);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);
 Move play_IA_threads(GameState *gameState, int depth, bool debug);
 void analyse(GameState *gameState, bool debug);
 bool score_move(GameState* gameState, char *board, int index, Move *move, const char current_player);
 Move *generate_possible_moves(char *board, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
-Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2);
+Move* proximate_moves(GameState *gameState, int *move_count, const char current_player, int x1, int y1, int x2, int y2, int ia_level) ;
 
 // Protoypes des fonctions dqns SandBox.c
 int nb_coups(GameState *gameState);
