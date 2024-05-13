@@ -11,9 +11,9 @@ OBJ := $(SRCS:.c=.o)
 
 # Paramètres par défaut pour Linux
 CC := gcc
-CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer -fPIC
-# Définition des flags d'optimisation
-OPTI_FLAGS := -O3 -march=native -flto -funroll-loops
+CFLAGS := -Wall -g -O3 -march=native -flto -funroll-loops -fno-omit-frame-pointer -fPIC
+#CFLAGS := -Wall -g -O0 -fno-omit-frame-pointer -fPIC
+
 LDFLAGS := -shared -fPIC
 TARGET := $(PATH_LIB)libgame.so
 
@@ -37,38 +37,20 @@ $(PATH_SRCS)%.o: $(PATH_SRCS)%.c
 $(TARGET): $(OBJ)
 	mkdir -p $(PATH_LIB)
 	$(CC) $(LDFLAGS) -o $@ $^
-# $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-
-
-# Règle de compilation
-build: $(SRCS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $(TARGET) $(SRCS)
-
-opti: CFLAGS = -O3 -march=native -flto -funroll-loops -fPIC
-opti:  clean $(TARGET)
 
 run: $(TARGET)
 	-python3 srcs/Gomoku.py
+
 # Règle pour nettoyer les fichiers compilés
 clean:
-	rm -f $(TARGET) $(OBJ)
+	rm -f $(TARGET) $(OBJ) main
 
 re: clean
 	make all
 
-run_valgrind: test
-	@echo "Lancement de valgrind... 🍺";
-	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes python3 Gomoku.py > leaks.txt 2>&1
-	@if grep -q "libgame.so" leaks.txt; then \
-		grep "libgame.so" leaks.txt; \
-	else \
-		echo "No leaks of libgame.so "; \
-	fi
-
 # Règle pour compiler et exécuter le programme de test
 test: c/main.c $(TARGET)
-# $(CC) -g -fsanitize=address -Wall -o main $(SRCS) c/main.c	
-	$(CC) $(CFLAGS) -g -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
+	$(CC) $(CFLAGS) -o main c/main.c -L$(PATH_LIB) -lgame -Wl,-rpath,$(PATH_LIB)
 
 
-.PHONY: all build clean re opti
+.PHONY: all build clean re test

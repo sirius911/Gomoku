@@ -66,9 +66,6 @@ class GomokuLogic:
             return FORBIDDEN_MOVE
         captured_list = self.check_capture(x, y, self.current_player)
         self.record_move(x, y, captured_list)
-        # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
-        # self.history_index += 1
-        # self.sandBox()
 
         if self.check_win():
             return WIN_GAME
@@ -101,8 +98,6 @@ class GomokuLogic:
         self.board[(x, y)] = self.current_player
         captured_list = self.check_capture(x, y, self.current_player)
         self.record_move(x, y, captured_list)
-        # self.history.append({'position': (x, y), 'player': self.current_player, 'captures': dict(self.captures), 'captured':(captured1, captured2)})
-        # self.history_index += 1
         if self.check_win():
             return WIN_GAME, play_time
         self.switch_player()
@@ -251,10 +246,6 @@ class GomokuLogic:
                         self.board[(captured[0].col, captured[0].row)]=self.opponent[self.current_player]
                         self.board[(captured[1].col, captured[1].row)]=self.opponent[self.current_player]
                         self.captures[player] -= 2
-            # if (captured1, captured2) != (None, None):
-            #     self.board[(captured1.col, captured1.row)]=self.opponent[self.current_player]
-            #     self.board[(captured2.col, captured2.row)]=self.opponent[self.current_player]
-            #     self.captures[player] -= 2
             return True
         else:
             return False
@@ -272,11 +263,6 @@ class GomokuLogic:
                 del self.board[(captured[0].col, captured[0].row)]
                 del self.board[(captured[1].col, captured[1].row)]
                 self.captures[player] += 2
-            # if next_move['captured'] != (None, None):
-            #     captured1, captured2 = next_move['captured']
-            #     del self.board[(captured1.col, captured1.row)]
-            #     del self.board[(captured2.col, captured2.row)]
-            #     self.captures[player] += 2  # Restaurez les captures si nécessaire
             return True
         else:
             return False
@@ -323,8 +309,7 @@ class GomokuLogic:
         for i in range(move_count.value):
             move = moves[i]
             value1, value2 = self.value_coup(move.col, move.row)
-            # print(f"({move.col},{move.row}) = {value1}, {value2}")
             proximates[(move.col, move.row)] = value1-value2
-        # N'oubliez pas de libérer la mémoire allouée par proximate_moves si nécessaire
+        # libérer la mémoire allouée par proximate_moves si nécessaire
         self.libgame.free_moves(moves)
         return proximates

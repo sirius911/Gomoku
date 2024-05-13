@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/17 23:31:34 by thoberth          #+#    #+#             */
-/*   Updated: 2024/04/22 13:44:39 by clorin           ###   ########.fr       */
+/*   Updated: 2024/05/13 11:29:27 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,6 @@ GameState *apply_move(const GameState *original_gameState, int x, int y) {
 }
 
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int col, int row, int ia_level) {
-    // print("On rentre dans min max avec Maximizing = %s et current_player = %c\n", (maximizingPlayer)?"True":"False", gameState->currentPlayer);
     char winner = '0';
     if (game_over(gameState, &winner) || depth == 0) {
         bool coup_gagnant = false;
@@ -81,25 +80,10 @@ EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool max
                 else
                     coup_gagnant = true;
             }
-            
-            // if (maximizingPlayer){
-            //     score = INT_MAX - depth; // Favoriser les victoires plus rapides
-            //     score_player = INT_MAX - depth;
-            //     score_opponent = INT_MIN + depth;
-                
-            // } else {
-            //     score = INT_MIN + depth; // La pénalité est moindre pour les défaites tardives
-            //     score_player = INT_MIN + depth;
-            //     score_opponent = INT_MAX - depth;
-                
-            // }
         } 
-        // else {
-            // print("Eval - > \n", gameState->currentPlayer, col, row);
             score_player = evaluation_player(gameState, gameState->currentPlayer);
             score_opponent = evaluation_opponent(gameState, adversaire(gameState->currentPlayer));
             score = score_player - score_opponent;
-        // }
         
         // printf("\t\tscore %c = %d   %c = %d --> %d\n",gameState->currentPlayer, score_player, adversaire(gameState->currentPlayer), score_opponent, score);
         return (EvalResult){.scoreDiff = score, .coup = (Move){col, row, score},
@@ -200,7 +184,6 @@ void analyse(GameState *gameState, bool debug) {
         Move *moves = proximate_moves(gameState, &move_count, gameState->currentPlayer, topLeftX, topLeftY, bottomRightX, bottomRightY, 1);
         
         // print("Analyse sur (%d,%d)x(%d, %d) : %d coups possibles\n", topLeftX, topLeftY, bottomRightX, bottomRightY, move_count);
-        // print_sequences_board(gameState->board, "");
         for (int i = 0; i < move_count; i++) {
             print("(%d, %d) ", moves[i].col, moves[i].row);
         }
@@ -324,12 +307,8 @@ Move* proximate_moves(GameState *gameState, int *move_count, const char current_
     }
 	fin_boucles:
 	qsort(moves, (size_t)count, sizeof(Move), compare_age);
-	// if (DEBUG){
-    //     for (int i = 0; i<count2;i++) {
-    //         print("score num[%d] = %d\t x = %d, y = %d, count %d \n", i, moves[i].score, moves[i].col, moves[i].row, count2);
-    //     }
-    // }
 
+    // ajustement du nombre de coups en fonction de l'IA
     if (ia_level == 1){
         if (count2 < 20)
             *move_count = count2;

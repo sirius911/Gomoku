@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   evaluator.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: thoberth <thoberth@student.42.fr>          +#+  +:+       +#+        */
+/*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 12:50:04 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/08 14:28:29 by thoberth         ###   ########.fr       */
+/*   Updated: 2024/05/13 11:07:26 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,12 @@
 // Compare deux chaînes en tenant compte des jokers '*' '+'
 // Retourne true si les chaînes correspondent, false sinon
 bool matchWithJoker(const char *sequence, const char *pattern) {
-    // printf(" Compare %s et %s ", sequence, pattern);
     for (int i = 0; pattern[i] != '\0' && sequence[i] != '\0'; i++) {
-        if ((pattern[i] != '*' && pattern[i] != '+' && sequence[i] != pattern[i] )) {
-            // printf("False 1\n");
+        if ((pattern[i] != '*' && pattern[i] != '+' && sequence[i] != pattern[i] ))
             return false;
-        }
-        if (pattern[i] == '+' && sequence[i] == '0'){ // Forcer un non vide
-            // printf("False 2\n");
+        if (pattern[i] == '+' && sequence[i] == '0') // Forcer un non vide
             return false;
-        }
     }
-    // printf("True\n");
     return true;
 }
 
@@ -40,13 +34,11 @@ char *seq2(const char *board, int x, int y, int dx, int dy, char player, int nb)
     */
 
     // Allocation dynamique du tableau pour stocker la séquence
-    // printf("Seq de %d en (%d,%d) [%d,%d] %c -> ", nb, x, y, dx, dy, player);
     char *sequence = (char *)malloc((nb + 1) * sizeof(char));
     if (sequence == NULL) {
         fprintf(stderr, "Erreur d'allocation mémoire\n");
         return NULL; // Retourne NULL en cas d'échec de l'allocation
     }
-    // memset(sequence, 0, nb * sizeof(char));
     for (int i = -1; i < nb-1; i++) {
         int nx = x + dx * i;
         int ny = y + dy * i;
@@ -63,12 +55,10 @@ char *seq2(const char *board, int x, int y, int dx, int dy, char player, int nb)
             sequence[i + 1] = '|'; //bord
     }
     sequence[nb] = '\0';
-    // printf(" - [%s]",sequence);
     return sequence;
 }
 
 int counter(const char *board, const char player, const char good[6]){
-    // int topLeftX, topLeftY, bottomRightX, bottomRightY;
     const int nb_dir = 8;
     const int taille_seq = 6;
     int count = 0;
@@ -76,7 +66,6 @@ int counter(const char *board, const char player, const char good[6]){
         {1, 0}, {0, 1}, {-1, 0}, {0, -1},
         {1, 1}, {-1, -1}, {1, -1}, {-1, 1}
     };
-    // findBoxElements(board, &topLeftX, &topLeftY, &bottomRightX, &bottomRightY);
     for (int y = 0 ; y < SIZE; ++y) {
         for (int x = 0; x < SIZE; ++x) {
             if (board[idx(x, y)] != player) continue;
@@ -93,9 +82,6 @@ int counter(const char *board, const char player, const char good[6]){
     return count;
 }
 
-// int count_seq_4_trous(const char *board, char player){
-//     return counter(board, player, SEQ_4_TROUS);
-// }
 
 #define SCORE_4 2500
 #define SCORE_3 1200
@@ -122,8 +108,6 @@ int evaluation_player(const GameState *gameState, const char player){
     
     _4_ = counter(gameState->board, player, SEQ_4_LIBRE);
     score += _4_ * SCORE_4;
-    // if ( _4_ > 0)
-    //     return MAX_EVAL -1;
     _4  = counter(gameState->board, player, SEQ_4_SEMI_LIBRE);
     score += (SCORE_4 - SCORE_PEN) * _4;
     _4t = counter(gameState->board, player, SEQ_4_TROUS);
@@ -175,12 +159,3 @@ int evaluation_opponent(const GameState *gameState, const char player){
     score += (nb_prise * SCORE_CAPT) + SCORE_PEN;
     return score;
 }
-
-// int evaluate_game(const GameState *gameState){
-//     const char player = gameState->currentPlayer;
-//     const char opponent = adversaire(player);
-
-//     int score_player = evaluation_player(gameState, player);
-//     int score_opponent = evaluation_opponent(gameState, opponent);
-//     return score_player - score_opponent;
-// }

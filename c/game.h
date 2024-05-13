@@ -6,7 +6,7 @@
 /*   By: clorin <clorin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 18:56:58 by clorin            #+#    #+#             */
-/*   Updated: 2024/04/21 23:25:36 by clorin           ###   ########.fr       */
+/*   Updated: 2024/05/13 11:08:39 by clorin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,6 @@ int count_sequences(const char *board, char player, int base_taille_seq);
 
 // Prototypes des fonctions ai_logic
 void    free_gameState(GameState *game);
-// int _evaluate_player(const GameState *gameState, char player);
-// int _evaluate_opponent(const GameState *gameState, char opponent);
 GameState *apply_move(const GameState *original_gameState, int x, int y);
 EvalResult minmax(GameState *gameState, int depth, int alpha, int beta, bool maximizingPlayer, int currentMoveX, int currentMoveY, int ia_level);
 Move play_IA(GameState *gameState, int depth, bool debug, bool stat);

@@ -190,10 +190,6 @@ class GomokuGUI:
 
     def ia_play(self):
         def run_ia():
-            # Assurez-vous que tout timer est annulé avant de démarrer l'IA
-            # if hasattr(self, 'timer_id'):
-            #     self.master.after(0, self.cancel_timer)
-
             self.status = CONTINUE_GAME
             while self.status == CONTINUE_GAME and self.is_IA_turn():
                 # Simuler un jeu par l'IA
@@ -541,9 +537,9 @@ class GomokuGUI:
                 self.ia_play()
 
     def update_mouse_coords(self, event):
-        # Convertissez les pixels en coordonnées de grille
+        # Convertir les pixels en coordonnées de grille
         grid_x, grid_y = self.convert_pixel_to_grid(event.x, event.y)
-        # Mettez à jour le label avec les coordonnées de la grille
+        # Mettre à jour le label avec les coordonnées de la grille
         self.mouse_coords_label.config(text=f"X: {grid_x}, Y: {grid_y}")
         if self.print_value.get():
             value1, value2 = self.game_logic.value_coup(grid_x, grid_y)
@@ -610,7 +606,7 @@ class GomokuGUI:
         self.timer_id = self.master.after(1000, self.update_timer)
 
     def handle_player_change(self):
-        # Redémarrez le timer pour le nouveau joueur, en annulant le précédent si nécessaire
+        # Redémarre le timer pour le nouveau joueur, en annulant le précédent si nécessaire
         self.cancel_timer()
         self.update_timer()
 
